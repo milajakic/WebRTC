@@ -30,6 +30,8 @@ Fonts worden dynamisch door font, font weight, font size, letterspacing ,etc aan
  → 1-op-1 via QR-sessie + websockets?
   
     → heb ik gedaan door [oef 7](https://github.com/devinekask/creative-code-4-s26/tree/main/websockets/projects/p07-one-on-one-qr) 
+    → Hoe webrtc toevoegen? door simple-peer?
+
 - **Test tekst op scherm** → Ervoor zorgen dat de input op de desktop belandt. 
     
     → later deze week
@@ -41,6 +43,11 @@ Fonts worden dynamisch door font, font weight, font size, letterspacing ,etc aan
 -> test test test
 
 ## AI Reflectie 
+**Week 1**
 Nog geen AI gebruikt.
-Oefeningen uit de les gehanteerd.
+Oefeningen uit de les herbekeken.
+
+**Week 2**
+Claude Haiku 4.5:
+Ik ga je project uitbreiden met WebRTC, geïnspireerd op de les-voorbeelden. WebRTC zal gebruikt worden voor directere peer-to-peer communicatie (bijv. voor video/audio), terwijl WebSockets blijven voor signaling.
 
