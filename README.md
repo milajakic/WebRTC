@@ -28,9 +28,19 @@ Fonts worden dynamisch door font, font weight, font size, letterspacing ,etc aan
 **Week 2**:  
 - **WebRTC datachannel**
  → 1-op-1 via QR-sessie + websockets?
+  
+    → heb ik gedaan door [oef 7](https://github.com/devinekask/creative-code-4-s26/tree/main/websockets/projects/p07-one-on-one-qr) 
 - **Test tekst op scherm** → Ervoor zorgen dat de input op de desktop belandt. 
+    
+    → later deze week
 
+**Week 3**
+- tekst inspreken 
+- font inladen en testen
+- animaties?
+-> test test test
 
 ## AI Reflectie 
 Nog geen AI gebruikt.
+Oefeningen uit de les gehanteerd.
 
