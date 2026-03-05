@@ -15,6 +15,9 @@ Fonts worden dynamisch door font, font weight, font size, letterspacing ,etc aan
 - tilt: Normal font naar cursief
 - schudden: font-size groter/ width axis breder
 
+**Variabele fonts**
+- Archivo: width + weight
+- Roboto Serif: width + weight + grade + italic
 
 ## Planning
 **Week 1**:
@@ -30,5 +33,4 @@ Fonts worden dynamisch door font, font weight, font size, letterspacing ,etc aan
 
 ## AI Reflectie 
 Nog geen AI gebruikt.
-
 
