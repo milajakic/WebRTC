@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Socket.io Controller</title>
+    <title>Controller</title>
     <style>
         html {
             box-sizing: border-box;
@@ -21,6 +21,71 @@
         body {
             height: 100%;
             margin: 0;
+            font-family: system-ui, -apple-system, sans-serif;
+            background: #1a1a1a;
+            color: #fff;
+        }
+
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+
+        .container {
+            text-align: center;
+            max-width: 400px;
+        }
+
+        h1 {
+            margin: 0 0 2rem 0;
+            font-size: 1.5rem;
+        }
+
+        .status-section {
+            background: #2a2a2a;
+            padding: 2rem;
+            border-radius: 8px;
+            margin-top: 2rem;
+        }
+
+        .status-item {
+            padding: 1rem 0;
+            font-size: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #444;
+        }
+
+        .status-item:last-child {
+            border-bottom: none;
+        }
+
+        .status {
+            padding: 0.4rem 1rem;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            min-width: 120px;
+            text-align: center;
+        }
+
+        .status.connected {
+            background: #1a4d1a;
+            color: #7fff7f;
+        }
+
+        .status.connecting {
+            background: #4d4d1a;
+            color: #ffff7f;
+        }
+
+        .status.disconnected {
+            background: #4d1a1a;
+            color: #ff7f7f;
         }
 
         .cursor {
@@ -30,31 +95,61 @@
             margin-left: -.5rem;
             margin-right: -.5rem;
             background: red;
-            border-radius: 50% 50%;
+            border-radius: 50%;
         }
     </style>
 </head>
 
 <body>
+    <div class="container">
+        <h1>Controller</h1>
+
+        <div class="status-section">
+            <div class="status-item">
+                <span>Socket:</span>
+                <div id="socket-status" class="status disconnected">Disconnected</div>
+            </div>
+            <div class="status-item">
+                <span>WebRTC:</span>
+                <div id="webrtc-status" class="status disconnected">Disconnected</div>
+            </div>
+            <div class="status-item">
+                <span>Device ID:</span>
+                <span id="device-id" style="font-family: monospace; font-size: 0.85rem; text-align: right;">-</span>
+            </div>
+            <div class="status-item" style="flex-direction: column; align-items: flex-start; border-bottom: none;">
+                <span style="margin-bottom: 0.5rem;">Move your cursor around</span>
+                <span style="font-size: 0.85rem; color: #999;">The cursor position is being sent to the desktop</span>
+            </div>
+        </div>
+    </div>
+
     <script src="/socket.io/socket.io.js"></script>
     <script>
         {
-            const $messages = document.getElementById('messages');
+            const $socketStatus = document.getElementById('socket-status');
+            const $webrtcStatus = document.getElementById('webrtc-status');
+            const $deviceId = document.getElementById('device-id');
 
-            let socket; // will be assigned a value later
+            let socket;
+            let peerConnection;
+            let targetSocketId;
 
-            const init = () => {
-                targetSocketId = getUrlParameter('id');
-                if (!targetSocketId) {
-                    alert(`Missing target ID in querystring`);
-                    return;
-                }
-                socket = io.connect('/');
-                socket.on('connect', () => {
-                    console.log(`Connected: ${socket.id}`);
-                });
-                window.addEventListener(`mousemove`, e => handleMouseMove(e));
-                window.addEventListener(`touchmove`, e => handleTouchMove(e));
+            const rtcConfig = {
+                iceServers: [
+                    { urls: ['stun:stun.l.google.com:19302'] },
+                    { urls: ['stun:stun1.l.google.com:19302'] }
+                ]
+            };
+
+            const updateSocketStatus = (status) => {
+                $socketStatus.textContent = status;
+                $socketStatus.className = `status ${status.toLowerCase()}`;
+            };
+
+            const updateWebRTCStatus = (status) => {
+                $webrtcStatus.textContent = status;
+                $webrtcStatus.className = `status ${status.toLowerCase()}`;
             };
 
             const getUrlParameter = name => {
@@ -65,7 +160,7 @@
             };
 
             const handleMouseMove = e => {
-                if (socket.connected) {
+                if (socket && socket.connected) {
                     socket.emit(`update`, targetSocketId, {
                         x: e.clientX / window.innerWidth,
                         y: e.clientY / window.innerHeight
@@ -74,12 +169,110 @@
             };
 
             const handleTouchMove = e => {
-                if (socket.connected) {
+                if (socket && socket.connected) {
                     socket.emit(`update`, targetSocketId, {
                         x: e.touches[0].clientX / window.innerWidth,
                         y: e.touches[0].clientY / window.innerHeight
                     });
                 }
+            };
+
+            const setupPeerConnection = async () => {
+                console.log('Setting up peer connection');
+                peerConnection = new RTCPeerConnection(rtcConfig);
+
+                // Handle ICE candidates
+                peerConnection.onicecandidate = (event) => {
+                    if (event.candidate && targetSocketId) {
+                        console.log('Sending ICE candidate');
+                        socket.emit('ice-candidate', targetSocketId, event.candidate);
+                    }
+                };
+
+                // Handle connection state changes
+                peerConnection.onconnectionstatechange = () => {
+                    console.log('Connection state:', peerConnection.connectionState);
+                    if (peerConnection.connectionState === 'connected') {
+                        updateWebRTCStatus('Connected');
+                    } else if (['disconnected', 'closed', 'failed'].includes(peerConnection.connectionState)) {
+                        updateWebRTCStatus('Disconnected');
+                    }
+                };
+
+                peerConnection.oniceconnectionstatechange = () => {
+                    console.log('ICE state:', peerConnection.iceConnectionState);
+                };
+
+                // Create and send offer
+                try {
+                    updateWebRTCStatus('Connecting');
+                    const offer = await peerConnection.createOffer();
+                    await peerConnection.setLocalDescription(offer);
+                    socket.emit('offer', targetSocketId, peerConnection.localDescription);
+                    console.log('Offer sent');
+                } catch (error) {
+                    console.error('Error creating offer:', error);
+                }
+            };
+
+            const closePeerConnection = () => {
+                if (peerConnection) {
+                    peerConnection.close();
+                    peerConnection = null;
+                }
+                updateWebRTCStatus('Disconnected');
+            };
+
+            const init = () => {
+                targetSocketId = getUrlParameter('id');
+                if (!targetSocketId) {
+                    alert(`Missing target ID in querystring`);
+                    return;
+                }
+
+                socket = io.connect('/');
+
+                socket.on('connect', () => {
+                    console.log(`Connected: ${socket.id}`);
+                    updateSocketStatus('Connected');
+                    $deviceId.textContent = socket.id.substring(0, 12) + '...';
+
+                    // Initiate WebRTC connection
+                    setupPeerConnection();
+                });
+
+                // Handle incoming answer
+                socket.on('answer', async (data) => {
+                    console.log('Received answer from', data.from);
+                    try {
+                        if (peerConnection) {
+                            await peerConnection.setRemoteDescription(new RTCSessionDescription(data.answer));
+                            console.log('Remote description set');
+                        }
+                    } catch (error) {
+                        console.error('Error handling answer:', error);
+                    }
+                });
+
+                // Handle ICE candidates
+                socket.on('ice-candidate', async (data) => {
+                    try {
+                        if (peerConnection && data.candidate) {
+                            await peerConnection.addIceCandidate(new RTCIceCandidate(data.candidate));
+                        }
+                    } catch (error) {
+                        console.error('Error adding ICE candidate:', error);
+                    }
+                });
+
+                socket.on('disconnect', () => {
+                    console.log('Socket disconnected');
+                    updateSocketStatus('Disconnected');
+                    closePeerConnection();
+                });
+
+                window.addEventListener(`mousemove`, handleMouseMove);
+                window.addEventListener(`touchmove`, handleTouchMove);
             };
 
             init();
