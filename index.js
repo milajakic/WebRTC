@@ -16,55 +16,31 @@ const clients = {};
 
 io.on('connection', socket => {
   clients[socket.id] = { id: socket.id };
-  console.log('Socket connected', socket.id);
+  console.log('[SERVER] Socket connected:', socket.id);
 
-  clients[socket.id].x = 0;
-  clients[socket.id].y = 0;
-
-  // Handle mouse/touch position updates
-  socket.on('update', (targetSocketId, data) => {
-    if (!clients[targetSocketId]) {
-      return;
-    }
-    clients[socket.id].x = data.x;
-    clients[socket.id].y = data.y;
-    io.to(targetSocketId).emit('update', data);
-  });
-
-  // WebRTC Signaling events
-  socket.on('offer', (targetSocketId, offer) => {
-    console.log(`Offer from ${socket.id} to ${targetSocketId}`);
+  // Handle Simple-Peer signal events
+  socket.on('signal', (data) => {
+    const { targetSocketId, signal } = data;
+    console.log(`[SERVER] Signal from ${socket.id} to ${targetSocketId}`);
+    
     if (clients[targetSocketId]) {
-      io.to(targetSocketId).emit('offer', {
+      io.to(targetSocketId).emit('signal', {
         from: socket.id,
-        offer: offer
+        signal: signal
       });
     }
   });
 
-  socket.on('answer', (targetSocketId, answer) => {
-    console.log(`Answer from ${socket.id} to ${targetSocketId}`);
+  // Handle cursor position updates via socket
+  socket.on('update', (targetSocketId, cursorData) => {
+    console.log(`[SERVER] Cursor update from ${socket.id} to ${targetSocketId}`);
     if (clients[targetSocketId]) {
-      io.to(targetSocketId).emit('answer', {
-        from: socket.id,
-        answer: answer
-      });
-    }
-  });
-
-  socket.on('ice-candidate', (targetSocketId, candidate) => {
-    console.log(`ICE candidate from ${socket.id} to ${targetSocketId}`);
-    if (clients[targetSocketId]) {
-      io.to(targetSocketId).emit('ice-candidate', {
-        from: socket.id,
-        candidate: candidate
-      });
+      io.to(targetSocketId).emit('update', cursorData);
     }
   });
 
   socket.on('disconnect', () => {
-    console.log('Socket disconnected', socket.id);
-    // Notify other client that connection is closed
+    console.log('[SERVER] Socket disconnected:', socket.id);
     io.emit('peer-disconnected', socket.id);
     delete clients[socket.id];
   });

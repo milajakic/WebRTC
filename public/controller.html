@@ -22,8 +22,8 @@
             height: 100%;
             margin: 0;
             font-family: system-ui, -apple-system, sans-serif;
-            background: #1a1a1a;
-            color: #fff;
+            background: #fff;
+            color: #1a1a1a;
         }
 
         body {
@@ -57,7 +57,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border-bottom: 1px solid #444;
+
         }
 
         .status-item:last-child {
@@ -125,6 +125,7 @@
     </div>
 
     <script src="/socket.io/socket.io.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/simple-peer@9.11.1/simplepeer.min.js"></script>
     <script>
         {
             const $socketStatus = document.getElementById('socket-status');
@@ -132,15 +133,8 @@
             const $deviceId = document.getElementById('device-id');
 
             let socket;
-            let peerConnection;
+            let simplePeer;
             let targetSocketId;
-
-            const rtcConfig = {
-                iceServers: [
-                    { urls: ['stun:stun.l.google.com:19302'] },
-                    { urls: ['stun:stun1.l.google.com:19302'] }
-                ]
-            };
 
             const updateSocketStatus = (status) => {
                 $socketStatus.textContent = status;
@@ -177,48 +171,48 @@
                 }
             };
 
-            const setupPeerConnection = async () => {
-                console.log('Setting up peer connection');
-                peerConnection = new RTCPeerConnection(rtcConfig);
+            const setupSimplePeer = async () => {
+                console.log('[CONTROLLER] Setting up Simple-Peer as initiator (initiator: true)');
 
-                // Handle ICE candidates
-                peerConnection.onicecandidate = (event) => {
-                    if (event.candidate && targetSocketId) {
-                        console.log('Sending ICE candidate');
-                        socket.emit('ice-candidate', targetSocketId, event.candidate);
+                simplePeer = new SimplePeer({
+                    initiator: true,
+                    trickle: true,
+                    config: {
+                        iceServers: [
+                            { urls: ['stun:stun.l.google.com:19302'] },
+                            { urls: ['stun:stun1.l.google.com:19302'] }
+                        ]
                     }
-                };
+                });
 
-                // Handle connection state changes
-                peerConnection.onconnectionstatechange = () => {
-                    console.log('Connection state:', peerConnection.connectionState);
-                    if (peerConnection.connectionState === 'connected') {
-                        updateWebRTCStatus('Connected');
-                    } else if (['disconnected', 'closed', 'failed'].includes(peerConnection.connectionState)) {
-                        updateWebRTCStatus('Disconnected');
-                    }
-                };
+                // Send signal events via Socket.io
+                simplePeer.on('signal', signal => {
+                    console.log('[CONTROLLER] Emitting signal to', targetSocketId);
+                    socket.emit('signal', {
+                        targetSocketId: targetSocketId,
+                        signal: signal
+                    });
+                });
 
-                peerConnection.oniceconnectionstatechange = () => {
-                    console.log('ICE state:', peerConnection.iceConnectionState);
-                };
+                simplePeer.on('connect', () => {
+                    console.log('[CONTROLLER] Simple-Peer connected!');
+                    updateWebRTCStatus('Connected');
+                });
 
-                // Create and send offer
-                try {
-                    updateWebRTCStatus('Connecting');
-                    const offer = await peerConnection.createOffer();
-                    await peerConnection.setLocalDescription(offer);
-                    socket.emit('offer', targetSocketId, peerConnection.localDescription);
-                    console.log('Offer sent');
-                } catch (error) {
-                    console.error('Error creating offer:', error);
-                }
+                simplePeer.on('error', (err) => {
+                    console.error('[CONTROLLER] Simple-Peer error:', err);
+                });
+
+                simplePeer.on('close', () => {
+                    console.log('[CONTROLLER] Simple-Peer closed');
+                    updateWebRTCStatus('Disconnected');
+                });
             };
 
-            const closePeerConnection = () => {
-                if (peerConnection) {
-                    peerConnection.close();
-                    peerConnection = null;
+            const closeSimplePeer = () => {
+                if (simplePeer) {
+                    simplePeer.destroy();
+                    simplePeer = null;
                 }
                 updateWebRTCStatus('Disconnected');
             };
@@ -233,42 +227,33 @@
                 socket = io.connect('/');
 
                 socket.on('connect', () => {
-                    console.log(`Connected: ${socket.id}`);
+                    console.log('[CONTROLLER] Socket connected:', socket.id);
                     updateSocketStatus('Connected');
                     $deviceId.textContent = socket.id.substring(0, 12) + '...';
 
-                    // Initiate WebRTC connection
-                    setupPeerConnection();
+                    // Initiate Simple-Peer connection
+                    setupSimplePeer();
                 });
 
-                // Handle incoming answer
-                socket.on('answer', async (data) => {
-                    console.log('Received answer from', data.from);
-                    try {
-                        if (peerConnection) {
-                            await peerConnection.setRemoteDescription(new RTCSessionDescription(data.answer));
-                            console.log('Remote description set');
-                        }
-                    } catch (error) {
-                        console.error('Error handling answer:', error);
+                // Handle incoming signal from desktop
+                socket.on('signal', (data) => {
+                    console.log('[CONTROLLER] Received signal from', data.from);
+
+                    if (!simplePeer) {
+                        setupSimplePeer();
                     }
-                });
 
-                // Handle ICE candidates
-                socket.on('ice-candidate', async (data) => {
                     try {
-                        if (peerConnection && data.candidate) {
-                            await peerConnection.addIceCandidate(new RTCIceCandidate(data.candidate));
-                        }
+                        simplePeer.signal(data.signal);
                     } catch (error) {
-                        console.error('Error adding ICE candidate:', error);
+                        console.error('[CONTROLLER] Error signaling:', error);
                     }
                 });
 
                 socket.on('disconnect', () => {
-                    console.log('Socket disconnected');
+                    console.log('[CONTROLLER] Socket disconnected');
                     updateSocketStatus('Disconnected');
-                    closePeerConnection();
+                    closeSimplePeer();
                 });
 
                 window.addEventListener(`mousemove`, handleMouseMove);
