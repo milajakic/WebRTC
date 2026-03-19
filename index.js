@@ -1,62 +1,55 @@
-const express = require('express')
-const app = express()
-const http = require('http');
-const server = http.createServer(app);
-const { Server } = require("socket.io");
+require('dotenv').config();
+const isDevelopment = (process.env.NODE_ENV === 'development');
+const express = require('express');
+const app = express();
+const fs = require('fs');
 const os = require('os');
-const io = new Server(server, {
-  cors: {
-    origin: "*",
-    methods: ["GET", "POST"]
-  }
-});
-const port = process.env.PORT || 80;
 
-const clients = {};
+let options = {};
+if (isDevelopment) {
+  options = {
+    key:  fs.readFileSync('./localhost.key'),
+    cert: fs.readFileSync('./localhost.crt')
+  };
+}
 
-io.on('connection', socket => {
-  clients[socket.id] = { id: socket.id };
-  console.log('[SERVER] Socket connected:', socket.id);
-
-  // Handle Simple-Peer signal events
-  socket.on('signal', (data) => {
-    const { targetSocketId, signal } = data;
-    console.log(`[SERVER] Signal from ${socket.id} to ${targetSocketId}`);
-    
-    if (clients[targetSocketId]) {
-      io.to(targetSocketId).emit('signal', {
-        from: socket.id,
-        signal: signal
-      });
-    }
-  });
-
-  // Handle cursor position updates via socket
-  socket.on('update', (targetSocketId, cursorData) => {
-    console.log(`[SERVER] Cursor update from ${socket.id} to ${targetSocketId}`);
-    if (clients[targetSocketId]) {
-      io.to(targetSocketId).emit('update', cursorData);
-    }
-  });
-
-  socket.on('disconnect', () => {
-    console.log('[SERVER] Socket disconnected:', socket.id);
-    io.emit('peer-disconnected', socket.id);
-    delete clients[socket.id];
-  });
-
-});
+const server = require(isDevelopment ? 'https' : 'http').Server(options, app);
+const port = process.env.PORT || 3000;
 
 app.use(express.static('public'));
 
 server.listen(port, () => {
   const networkInterfaces = os.networkInterfaces();
-  for (const interfaceName in networkInterfaces) {
-    for (const iface of networkInterfaces[interfaceName]) {
-      if (iface.family === 'IPv4' && !iface.internal) {
-        console.log(`http://${iface.address}`);
-      }
+  for (const iface of Object.values(networkInterfaces).flat()) {
+    if (iface.family === 'IPv4' && !iface.internal) {
+      console.log(`https://${iface.address}:${port}`);
     }
   }
-  console.log(`App listening on port ${port}!`);
+});
+
+const { Server } = require("socket.io");
+const io = new Server(server);
+
+const clients = {};
+io.on('connection', socket => {
+  clients[socket.id] = { id: socket.id };
+  io.emit('clients', clients);
+
+  socket.on('disconnect', () => {
+    io.emit('client-disconnect', socket.id);
+    delete clients[socket.id];
+    io.emit('clients', clients);
+  });
+
+  socket.on('signal', (peerId, signal) => {
+    io.to(peerId).emit('signal', peerId, signal, socket.id);
+  });
+
+  socket.on('update', (targetSocketId, data) => {
+    if (clients[targetSocketId]) {
+      io.to(targetSocketId).emit('update', data);
+    }
+  });
+
+  io.emit('client-connection', clients[socket.id]);
 });
