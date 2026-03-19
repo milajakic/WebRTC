@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Variable Font Desktop</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,100..900;1,9..144,100..900&display=swap"
+    rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0a0a0a;
+      --fg: #f0ece4;
+      --accent: #F44611;
+      --muted: #2a2a2a;
+      --panel: #111;
+      --border: #222;
+
+      --wght: 400;
+      --wdth: 100;
+      --slnt: 0;
+      --opsz: 36;
+      --wonk: 0;
+
+      --cursor-x: 50%;
+      --cursor-y: 50%;
+    }
+
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html,
+    body {
+      height: 100%;
+      background: var(--bg);
+      color: var(--fg);
+      font-family: 'Fraunces', Georgia, serif;
+      overflow: hidden;
+    }
+
+    /* ── CANVAS ─────────────────────────────────── */
+    #canvas {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0;
+      padding: 4rem 3rem;
+      transition: background 0.6s ease;
+    }
+
+    .word {
+      font-family: 'Fraunces', Georgia, serif;
+      font-variation-settings:
+        'wght' var(--wght),
+        'opsz' var(--opsz),
+        'WONK' var(--wonk);
+      font-style: oblique calc(var(--slnt) * 1deg);
+      line-height: 0.88;
+      letter-spacing: -0.02em;
+      color: var(--fg);
+      transition:
+        font-variation-settings 0.05s linear,
+        font-style 0.05s linear,
+        color 0.3s ease,
+        opacity 0.3s ease;
+      user-select: none;
+      white-space: nowrap;
+      will-change: font-variation-settings;
+    }
+
+    .word-1 {
+      font-size: clamp(4rem, 14vw, 16rem);
+    }
+
+    .word-2 {
+      font-size: clamp(3rem, 10vw, 11rem);
+      opacity: 0.7;
+    }
+
+    .word-3 {
+      font-size: clamp(2rem, 7vw, 8rem);
+      opacity: 0.45;
+    }
+
+    .word-4 {
+      font-size: clamp(1.5rem, 5vw, 5.5rem);
+      opacity: 0.25;
+    }
+
+    .word.italic {
+      font-style: italic;
+    }
+
+    /* Grid bg */
+    #canvas::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(var(--border) 1px, transparent 1px),
+        linear-gradient(90deg, var(--border) 1px, transparent 1px);
+      background-size: 60px 60px;
+      opacity: 0.4;
+      pointer-events: none;
+    }
+
+    /* Spotlight follow */
+    #canvas::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(circle 40vw at var(--cursor-x) var(--cursor-y),
+          rgba(244, 70, 17, 0.04) 0%,
+          transparent 70%);
+      pointer-events: none;
+      transition: background 0.1s ease;
+    }
+
+    /* ── SIDEBAR ─────────────────────────────────── */
+    #sidebar {
+      position: fixed;
+      right: 0;
+      top: 0;
+      bottom: 0;
+      width: 240px;
+      background: var(--panel);
+      border-left: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      padding: 1.5rem 1.2rem;
+      gap: 1.2rem;
+      z-index: 100;
+      transition: transform 0.3s ease;
+    }
+
+    #sidebar.hidden {
+      transform: translateX(100%);
+    }
+
+    .sidebar-title {
+      font-family: 'Fraunces', serif;
+      font-variation-settings: 'wght' 800, 'opsz' 12;
+      font-size: 0.7rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 0.4rem;
+    }
+
+    .axis-row {
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+    }
+
+    .axis-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.7rem;
+      letter-spacing: 0.08em;
+      color: #888;
+    }
+
+    .axis-label span:last-child {
+      color: var(--accent);
+      font-variant-numeric: tabular-nums;
+      min-width: 3ch;
+      text-align: right;
+    }
+
+    .axis-bar-bg {
+      height: 3px;
+      background: var(--muted);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+
+    .axis-bar {
+      height: 100%;
+      background: var(--accent);
+      border-radius: 2px;
+      transition: width 0.05s linear;
+      will-change: width;
+    }
+
+    /* ── STATUS BAR ──────────────────────────────── */
+    #statusbar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 36px;
+      background: var(--panel);
+      border-top: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      padding: 0 1.2rem;
+      gap: 1.5rem;
+      z-index: 100;
+    }
+
+    .status-pill {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 0.65rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: #666;
+    }
+
+    .dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #444;
+      transition: background 0.3s ease;
+    }
+
+    .dot.connected {
+      background: var(--accent);
+      box-shadow: 0 0 6px var(--accent);
+    }
+
+    .dot.connecting {
+      background: #ff9900;
+    }
+
+    .dot.disconnected {
+      background: #ff4444;
+    }
+
+    #qr-wrap {
+      margin-left: auto;
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+    }
+
+    #qr-wrap img {
+      image-rendering: pixelated;
+      width: 24px;
+      height: 24px;
+      opacity: 0.6;
+      cursor: pointer;
+    }
+
+    #url-short {
+      font-size: 0.62rem;
+      color: #555;
+      font-family: monospace;
+      cursor: pointer;
+      transition: color 0.2s;
+    }
+
+    #url-short:hover {
+      color: var(--accent);
+    }
+
+    /* ── QR MODAL ────────────────────────────────── */
+    #qr-modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.85);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 200;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease;
+    }
+
+    #qr-modal.visible {
+      opacity: 1;
+      pointer-events: all;
+    }
+
+    #qr-modal-inner {
+      background: #fff;
+      padding: 2rem;
+      border-radius: 4px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    #qr-modal-inner p {
+      font-size: 0.75rem;
+      color: #333;
+      font-family: monospace;
+      word-break: break-all;
+      max-width: 260px;
+      text-align: center;
+    }
+
+    /* ── IDLE ANIMATION ──────────────────────────── */
+    @keyframes idle-wght {
+
+      0%,
+      100% {
+        --wght: 100;
+      }
+
+      50% {
+        --wght: 900;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+
+  <div id="canvas">
+    <div class="word word-1" id="word1">Variable</div>
+    <div class="word word-2" id="word2">Font</div>
+    <div class="word word-3" id="word3">Devine</div>
+    <div class="word word-4" id="word4">Mila</div>
+  </div>
+
+  <div id="sidebar">
+    <div class="sidebar-title">Font Axes</div>
+
+    <div class="axis-row">
+      <div class="axis-label"><span>Weight</span><span id="val-wght">400</span></div>
+      <div class="axis-bar-bg">
+        <div class="axis-bar" id="bar-wght" style="width:33%"></div>
+      </div>
+    </div>
+    <div class="axis-row">
+      <div class="axis-label"><span>Optical Size</span><span id="val-opsz">36</span></div>
+      <div class="axis-bar-bg">
+        <div class="axis-bar" id="bar-opsz" style="width:20%"></div>
+      </div>
+    </div>
+    <div class="axis-row">
+      <div class="axis-label"><span>Slant</span><span id="val-slnt">0</span></div>
+      <div class="axis-bar-bg">
+        <div class="axis-bar" id="bar-slnt" style="width:50%"></div>
+      </div>
+    </div>
+    <div class="axis-row">
+      <div class="axis-label"><span>Wonky</span><span id="val-wonk">0</span></div>
+      <div class="axis-bar-bg">
+        <div class="axis-bar" id="bar-wonk" style="width:0%"></div>
+      </div>
+    </div>
+
+    <div class="sidebar-title" style="margin-top:0.5rem;">Color Mode</div>
+    <div id="color-mode" style="font-size:0.75rem; color:#666;">Default</div>
+
+    <div class="sidebar-title" style="margin-top:0.5rem;">Sensor Data</div>
+    <div style="font-size:0.68rem; color:#555; line-height:1.8; font-family:monospace;">
+      <div>α <span id="s-alpha">—</span></div>
+      <div>β <span id="s-beta">—</span></div>
+      <div>γ <span id="s-gamma">—</span></div>
+    </div>
+  </div>
+
+
+  <div id="statusbar">
+    <div class="status-pill">
+      <div class="dot disconnected" id="dot-socket"></div>
+      <span>Socket</span>
+    </div>
+    <div class="status-pill">
+      <div class="dot disconnected" id="dot-webrtc"></div>
+      <span>WebRTC</span>
+    </div>
+    <div class="status-pill" id="fps-pill">
+      <span id="fps-val">0</span>
+      <span>msg/s</span>
+    </div>
+
+    <div id="qr-wrap">
+      <span id="url-short" onclick="document.getElementById('qr-modal').classList.toggle('visible')">—</span>
+      <div id="qr" onclick="document.getElementById('qr-modal').classList.toggle('visible')" style="cursor:pointer;">
+      </div>
+    </div>
+  </div>
+
+
+  <div id="qr-modal" onclick="this.classList.remove('visible')">
+    <div id="qr-modal-inner" onclick="event.stopPropagation()">
+      <div id="qr-big"></div>
+      <p id="qr-url-text"></p>
+    </div>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"
+    integrity="sha512-ZDSPMa/JM1D+7kdg2x3BsruQ6T/JpJo3jWDWkCZsP+5yVyp1KfESqLI+7RqB5k24F7p2cV7i2YHh/890y6P6Sw=="
+    crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/simple-peer@9.11.1/simplepeer.min.js"></script>
+  <script>
+    {
+      const root = document.documentElement;
+      const canvas = document.getElementById('canvas');
+      const words = document.querySelectorAll('.word');
+      const state = {
+        wght: 400, opsz: 36, slnt: 0, wonk: 0,
+        x: 0.5, y: 0.5,
+        alpha: 0, beta: 0, gamma: 0,
+        colorMode: 'default'
+      };
+
+      let msgCount = 0;
+      setInterval(() => {
+        document.getElementById('fps-val').textContent = msgCount;
+        msgCount = 0;
+      }, 1000);
+
+
+      const COLOR_MODES = {
+        default: { bg: '#0a0a0a', fg: '#f0ece4' },
+        inverted: { bg: '#f0ece4', fg: '#0a0a0a' },
+        accent: { bg: '#0a1a00', fg: '#c8ff00' },
+        hot: { bg: '#1a0000', fg: '#ff6644' },
+        cold: { bg: '#00061a', fg: '#88ccff' }
+      };
+
+      function applyState() {
+        root.style.setProperty('--wght', state.wght);
+        root.style.setProperty('--opsz', state.opsz);
+        root.style.setProperty('--slnt', state.slnt);
+        root.style.setProperty('--wonk', state.wonk);
+        root.style.setProperty('--cursor-x', (state.x * 100) + '%');
+        root.style.setProperty('--cursor-y', (state.y * 100) + '%');
+
+
+        document.getElementById('val-wght').textContent = Math.round(state.wght);
+        document.getElementById('val-opsz').textContent = Math.round(state.opsz);
+        document.getElementById('val-slnt').textContent = Math.round(state.slnt * 10) / 10;
+        document.getElementById('val-wonk').textContent = Math.round(state.wonk * 10) / 10;
+
+        document.getElementById('bar-wght').style.width = ((state.wght - 100) / 800 * 100) + '%';
+        document.getElementById('bar-opsz').style.width = ((state.opsz - 9) / 135 * 100) + '%';
+        document.getElementById('bar-slnt').style.width = ((state.slnt + 90) / 180 * 100) + '%';
+        document.getElementById('bar-wonk').style.width = (state.wonk * 100) + '%';
+
+
+        document.getElementById('s-alpha').textContent = Math.round(state.alpha) + '°';
+        document.getElementById('s-beta').textContent = Math.round(state.beta) + '°';
+        document.getElementById('s-gamma').textContent = Math.round(state.gamma) + '°';
+      }
+
+      function handleMessage(raw) {
+        msgCount++;
+        let msg;
+        try { msg = JSON.parse(raw); } catch { return; }
+
+        if (msg.type === 'font') {
+          const a = msg.axes;
+          if (a.wght !== undefined) state.wght = Math.min(900, Math.max(100, a.wght));
+          if (a.opsz !== undefined) state.opsz = Math.min(144, Math.max(9, a.opsz));
+          if (a.slnt !== undefined) state.slnt = Math.min(90, Math.max(-90, a.slnt));
+          if (a.wonk !== undefined) state.wonk = Math.min(1, Math.max(0, a.wonk));
+          if (a.x !== undefined) state.x = a.x;
+          if (a.y !== undefined) state.y = a.y;
+          if (a.alpha !== undefined) state.alpha = a.alpha;
+          if (a.beta !== undefined) state.beta = a.beta;
+          if (a.gamma !== undefined) state.gamma = a.gamma;
+          applyState();
+        }
+
+        if (msg.type === 'color') {
+          const m = COLOR_MODES[msg.mode] || COLOR_MODES.default;
+          canvas.style.setProperty('--bg', m.bg);
+          canvas.style.setProperty('--fg', m.fg);
+          document.body.style.background = m.bg;
+          root.style.setProperty('--fg', m.fg);
+          root.style.setProperty('--bg', m.bg);
+          document.getElementById('color-mode').textContent = msg.mode;
+        }
+
+        if (msg.type === 'text') {
+          if (msg.words && msg.words.length) {
+            msg.words.forEach((w, i) => {
+              if (words[i]) words[i].textContent = w;
+            });
+          }
+        }
+      }
+
+      let idleRAF;
+      let idleT = 0;
+      function idleAnimate() {
+        idleT += 0.008;
+        state.wght = 100 + (Math.sin(idleT) * 0.5 + 0.5) * 800;
+        state.slnt = Math.sin(idleT * 0.7) * 12;
+        state.opsz = 9 + (Math.sin(idleT * 0.4) * 0.5 + 0.5) * 135;
+        state.wonk = Math.sin(idleT * 1.3) * 0.5 + 0.5;
+        applyState();
+        idleRAF = requestAnimationFrame(idleAnimate);
+      }
+      idleAnimate();
+
+      function stopIdle() {
+        if (idleRAF) cancelAnimationFrame(idleRAF);
+        idleRAF = null;
+      }
+
+      let socket, simplePeer, remoteSocketId;
+
+      const dotSocket = document.getElementById('dot-socket');
+      const dotWebrtc = document.getElementById('dot-webrtc');
+
+      function setDot(el, status) {
+        el.className = 'dot ' + status;
+      }
+
+      function setupSimplePeer() {
+        simplePeer = new SimplePeer({
+          initiator: false,
+          trickle: true,
+          config: {
+            iceServers: [
+              { urls: ['stun:stun.l.google.com:19302'] },
+              { urls: ['stun:stun1.l.google.com:19302'] }
+            ]
+          }
+        });
+
+        simplePeer.on('signal', signal => {
+          socket.emit('signal', remoteSocketId, signal);
+        });
+
+        simplePeer.on('connect', () => {
+          setDot(dotWebrtc, 'connected');
+          stopIdle();
+        });
+
+        simplePeer.on('data', data => {
+          handleMessage(typeof data === 'string' ? data : new TextDecoder().decode(data));
+        });
+
+        simplePeer.on('error', err => console.error('[DESKTOP] Peer error:', err));
+
+        simplePeer.on('close', () => {
+          setDot(dotWebrtc, 'disconnected');
+          simplePeer = null;
+          idleAnimate();
+        });
+      }
+
+      function closeSimplePeer() {
+        if (simplePeer) { simplePeer.destroy(); simplePeer = null; }
+        setDot(dotWebrtc, 'disconnected');
+        idleAnimate();
+      }
+
+      socket = io.connect('/');
+
+      socket.on('connect', () => {
+        setDot(dotSocket, 'connected');
+
+        const url = `${new URL(`/controller.html?id=${socket.id}`, window.location).href.replace('http://', 'https://')}`;
+        document.getElementById('url-short').textContent = socket.id.substring(0, 8) + '…';
+        document.getElementById('qr-url-text').textContent = url;
+
+        const qrSmall = qrcode(4, 'L');
+        qrSmall.addData(url);
+        qrSmall.make();
+        document.getElementById('qr').innerHTML = qrSmall.createImgTag(1);
+
+        const qrBig = qrcode(4, 'L');
+        qrBig.addData(url);
+        qrBig.make();
+        document.getElementById('qr-big').innerHTML = qrBig.createImgTag(5);
+      });
+
+      socket.on('signal', (peerId, signal, fromId) => {
+        remoteSocketId = fromId;
+        if (!simplePeer) setupSimplePeer();
+        try { simplePeer.signal(signal); } catch (e) { console.error(e); }
+      });
+
+      socket.on('update', data => {
+        state.x = data.x;
+        state.y = data.y;
+        applyState();
+      });
+
+      socket.on('client-disconnect', client => {
+        if (client && client.id === remoteSocketId) closeSimplePeer();
+      });
+
+      socket.on('disconnect', () => {
+        setDot(dotSocket, 'disconnected');
+        closeSimplePeer();
+      });
+    }
+  </script>
+</body>
+
+</html>
