@@ -45,6 +45,7 @@
             touch-action: none;
         }
 
+        /* ── HEADER ─────────────────────────────────── */
         header {
             flex: 0 0 auto;
             padding: 1rem 1.2rem 0.6rem;
@@ -97,6 +98,7 @@
             background: currentColor;
         }
 
+        /* ── TOUCH PAD ───────────────────────────────── */
         #touchpad {
             position: relative;
             flex: 0 0 auto;
@@ -120,6 +122,7 @@
             pointer-events: none;
         }
 
+        /* Crosshair guides */
         #touchpad::before,
         #touchpad::after {
             content: '';
@@ -167,6 +170,7 @@
             opacity: 0.6;
         }
 
+        /* X = wght, Y = slnt axis labels */
         #tp-x-label {
             position: absolute;
             bottom: 0.6rem;
@@ -187,6 +191,7 @@
             transform-origin: center;
         }
 
+        /* ── SLIDERS ────────────────────────────────── */
         #controls {
             flex: 1 1 auto;
             overflow-y: auto;
@@ -248,6 +253,7 @@
             box-shadow: 0 0 8px rgba(200, 255, 0, 0.5);
         }
 
+        /* ── GYRO TOGGLE ──────────────────────────────── */
         .gyro-row {
             display: flex;
             gap: 0.5rem;
@@ -276,6 +282,7 @@
             color: var(--accent);
         }
 
+        /* ── COLOR MODES ──────────────────────────────── */
         .color-strip {
             display: flex;
             gap: 0.5rem;
@@ -320,7 +327,7 @@
             background: linear-gradient(135deg, #00061a 50%, #88ccff 50%);
         }
 
-
+        /* ── GYRO INDICATOR ───────────────────────────── */
         .gyro-viz {
             position: relative;
             height: 50px;
@@ -355,7 +362,7 @@
             z-index: 1;
         }
 
-
+        /* section labels */
         .section-label {
             font-size: 0.58rem;
             letter-spacing: 0.12em;
@@ -368,7 +375,7 @@
 
 <body>
 
-
+    <!-- HEADER -->
     <header>
         <div class="logo">Variable<span>Font</span></div>
         <div class="connection-pills">
@@ -383,6 +390,7 @@
         </div>
     </header>
 
+    <!-- TOUCHPAD: X = weight, Y = slant -->
     <div id="touchpad">
         <div id="touchpad-label">Touch Pad</div>
         <div style="position:absolute;bottom:0.6rem;left:0.8rem;font-size:0.55rem;color:#333;letter-spacing:0.08em;">←
@@ -393,12 +401,12 @@
         <div id="touch-cursor"></div>
     </div>
 
-
+    <!-- CONTROLS -->
     <div id="controls">
 
         <div class="section-label">Axes</div>
 
-
+        <!-- Optical Size -->
         <div class="control-row">
             <div class="control-header">
                 <span class="control-name">Optical Size</span>
@@ -407,7 +415,7 @@
             <input type="range" id="slider-opsz" min="9" max="144" step="1" value="36">
         </div>
 
-
+        <!-- Wonky -->
         <div class="control-row">
             <div class="control-header">
                 <span class="control-name">Wonky</span>
@@ -445,14 +453,40 @@
     <script src="https://cdn.jsdelivr.net/npm/simple-peer@9.11.1/simplepeer.min.js"></script>
     <script>
         {
+            // ── Helpers ───────────────────────────────────────────────────
             const $ = id => document.getElementById(id);
             const clamp = (v, min, max) => Math.min(max, Math.max(min, v));
             const lerp = (a, b, t) => a + (b - a) * t;
 
-            const axes = { wght: 400, opsz: 36, slnt: 0, wonk: 0, x: 0.5, y: 0.5, alpha: 0, beta: 0, gamma: 0 };
+            // ── State ────────────────────────────────────────────────────
+            const axes = { wght: 400, wdth: 100, opsz: 36, slnt: 0, wonk: 0, x: 0.5, y: 0.5, alpha: 0, beta: 0, gamma: 0, italic: false };
             let gyroEnabled = false;
             let gyroSmooth = { beta: 0, gamma: 0 };
 
+            // ── Schud detectie ────────────────────────────────────────────
+            let lastAcc = { x: 0, y: 0, z: 0 };
+            let italicLocked = false;
+            window.addEventListener('devicemotion', e => {
+                if (!gyroEnabled) return;
+                const acc = e.accelerationIncludingGravity;
+                if (!acc) return;
+                const dx = Math.abs(acc.x - lastAcc.x);
+                const dy = Math.abs(acc.y - lastAcc.y);
+                const dz = Math.abs(acc.z - lastAcc.z);
+                lastAcc = { x: acc.x, y: acc.y, z: acc.z };
+                const shake = dx + dy + dz;
+                if (shake > 30 && !italicLocked) {
+                    axes.italic = !axes.italic;
+                    italicLocked = true;
+                    setTimeout(() => { italicLocked = false; }, 800);
+                    const msg = JSON.stringify({ type: 'italic', value: axes.italic });
+                    if (simplePeer && simplePeer.connected) {
+                        try { simplePeer.send(msg); } catch (e) { }
+                    }
+                }
+            });
+
+            // ── RAF loop: smooth + send ───────────────────────────────────
             let rafRunning = false;
             function startRAF() {
                 if (rafRunning) return;
@@ -465,11 +499,12 @@
                     gyroSmooth.beta = lerp(gyroSmooth.beta, axes.beta, 0.12);
                     gyroSmooth.gamma = lerp(gyroSmooth.gamma, axes.gamma, 0.12);
 
-
+                    // beta (-90..90) → weight (100..900)
                     axes.wght = clamp(100 + ((gyroSmooth.beta + 90) / 180) * 800, 100, 900);
-                    axes.slnt = clamp((gyroSmooth.gamma / 90) * 12, -12, 12);
+                    // gamma (-90..90) → width (75..125)
+                    axes.wdth = clamp(75 + ((gyroSmooth.gamma + 90) / 180) * 50, 75, 125);
 
-
+                    // Update gyro ball
                     const ball = $('gyro-ball');
                     const viz = document.querySelector('.gyro-viz');
                     const bx = clamp((gyroSmooth.gamma + 90) / 180, 0, 1) * viz.clientWidth;
@@ -482,7 +517,8 @@
                 requestAnimationFrame(loop);
             }
 
-            const SEND_INTERVAL = 16;
+            // ── Throttled send ───────────────────────────────────────────
+            const SEND_INTERVAL = 16; // ~60fps cap
             let lastSent = 0;
 
             function sendFontMessage() {
@@ -495,12 +531,15 @@
                     axes: { ...axes }
                 });
 
+                // Prefer datachannel
                 if (simplePeer && simplePeer.connected) {
                     try { simplePeer.send(msg); } catch (e) { }
                 } else if (socket && socket.connected && targetSocketId) {
                     socket.emit('update', targetSocketId, { x: axes.x, y: axes.y });
                 }
             }
+
+            // ── Touchpad ─────────────────────────────────────────────────
             const touchpad = $('touchpad');
             const cursor = $('touch-cursor');
 
@@ -512,7 +551,7 @@
                 axes.x = nx;
                 axes.y = ny;
                 axes.wght = clamp(100 + nx * 800, 100, 900);
-                axes.slnt = clamp((ny - 0.5) * -24, -12, 12);
+                axes.slnt = clamp((ny - 0.5) * -24, -12, 12); // top = positive slant
 
                 cursor.style.left = (nx * 100) + '%';
                 cursor.style.top = (ny * 100) + '%';
@@ -531,6 +570,7 @@
             touchpad.addEventListener('mousedown', e => updateFromTouch(e.clientX, e.clientY));
             touchpad.addEventListener('mousemove', e => { if (e.buttons) updateFromTouch(e.clientX, e.clientY); });
 
+            // ── Sliders ───────────────────────────────────────────────────
             function setupSlider(id, axisKey, labelId) {
                 const el = $(id);
                 const lb = $(labelId);
@@ -543,6 +583,9 @@
             setupSlider('slider-opsz', 'opsz', 'label-opsz');
             setupSlider('slider-wonk', 'wonk', 'label-wonk');
 
+            // ── Gyroscope ─────────────────────────────────────────────────
+
+            // Warn if not HTTPS (gyro blocked on plain HTTP, except localhost)
             const isSecure = location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1';
             if (!isSecure) {
                 $('gyro-btn').textContent = 'Gyro: HTTPS vereist';
@@ -552,6 +595,7 @@
 
             $('gyro-btn').addEventListener('click', async () => {
                 if (!gyroEnabled) {
+                    // iOS 13+ requires explicit permission
                     if (typeof DeviceOrientationEvent !== 'undefined' &&
                         typeof DeviceOrientationEvent.requestPermission === 'function') {
                         try {
@@ -560,6 +604,7 @@
                         } catch (e) { alert('Permission error: ' + e.message); return; }
                     }
 
+                    // Check if events actually fire (Android sometimes silent)
                     let testFired = false;
                     const testHandler = () => { testFired = true; };
                     window.addEventListener('deviceorientation', testHandler);
@@ -585,9 +630,10 @@
                 axes.alpha = e.alpha != null ? e.alpha : 0;
                 axes.beta = e.beta != null ? e.beta : 0;
                 axes.gamma = e.gamma != null ? e.gamma : 0;
-                $('gyro-debug').textContent = `β ${Math.round(axes.beta)}°  γ ${Math.round(axes.gamma)}°`;
+                $('gyro-debug').textContent = `β ${Math.round(axes.beta)}°→wght  γ ${Math.round(axes.gamma)}°→wdth`;
             }
 
+            // ── Color buttons ─────────────────────────────────────────────
             document.querySelectorAll('.color-btn').forEach(btn => {
                 btn.addEventListener('click', () => {
                     document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
@@ -600,6 +646,41 @@
                 });
             });
 
+            // ── Feedback: trilling + geluid (iOS fallback) ────────────────
+            let audioCtx = null;
+
+            function triggerFeedback(italic) {
+                // Trilling (Android + sommige browsers)
+                if (navigator.vibrate) {
+                    navigator.vibrate(italic ? [80, 40, 80] : [40]);
+                }
+
+                // Geluid fallback via Web Audio API (werkt op iOS)
+                try {
+                    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    // Italic aan = hoge toon, italic uit = lage toon
+                    osc.frequency.value = italic ? 880 : 440;
+                    osc.type = 'sine';
+                    gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.15);
+                    osc.start(audioCtx.currentTime);
+                    osc.stop(audioCtx.currentTime + 0.15);
+                } catch (e) { }
+            }
+
+            // AudioContext moet gestart worden na gebruikersinteractie (iOS vereiste)
+            // We initialiseren hem bij de eerste touch op de pagina
+            document.addEventListener('touchstart', () => {
+                if (!audioCtx) {
+                    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+            }, { once: true });
+
+            // ── Socket + SimplePeer ───────────────────────────────────────
             let socket, simplePeer, targetSocketId;
 
             function setPill(id, connected) {
@@ -625,6 +706,17 @@
 
                 simplePeer.on('connect', () => {
                     setPill('pill-webrtc', true);
+                });
+
+                // Ontvang berichten van desktop
+                simplePeer.on('data', data => {
+                    const raw = typeof data === 'string' ? data : new TextDecoder().decode(data);
+                    try {
+                        const msg = JSON.parse(raw);
+                        if (msg.type === 'feedback') {
+                            triggerFeedback(msg.italic);
+                        }
+                    } catch (e) { }
                 });
 
                 simplePeer.on('error', err => console.error('[CTRL] Peer error:', err));

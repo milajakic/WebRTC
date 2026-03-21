@@ -63,6 +63,7 @@
       font-family: 'Fraunces', Georgia, serif;
       font-variation-settings:
         'wght' var(--wght),
+        'wdth' var(--wdth),
         'opsz' var(--opsz),
         'WONK' var(--wonk);
       font-style: oblique calc(var(--slnt) * 1deg);
@@ -323,14 +324,15 @@
 
 <body>
 
-
+  <!-- MAIN CANVAS -->
   <div id="canvas">
     <div class="word word-1" id="word1">Variable</div>
     <div class="word word-2" id="word2">Font</div>
-    <div class="word word-3" id="word3">Devine</div>
-    <div class="word word-4" id="word4">Mila</div>
+    <div class="word word-3" id="word3">Controller</div>
+    <div class="word word-4" id="word4">WebRTC</div>
   </div>
 
+  <!-- SIDEBAR: AXES MONITOR -->
   <div id="sidebar">
     <div class="sidebar-title">Font Axes</div>
 
@@ -370,7 +372,7 @@
     </div>
   </div>
 
-
+  <!-- STATUS BAR -->
   <div id="statusbar">
     <div class="status-pill">
       <div class="dot disconnected" id="dot-socket"></div>
@@ -392,7 +394,7 @@
     </div>
   </div>
 
-
+  <!-- QR MODAL -->
   <div id="qr-modal" onclick="this.classList.remove('visible')">
     <div id="qr-modal-inner" onclick="event.stopPropagation()">
       <div id="qr-big"></div>
@@ -410,20 +412,24 @@
       const root = document.documentElement;
       const canvas = document.getElementById('canvas');
       const words = document.querySelectorAll('.word');
+
+      // ── State ────────────────────────────────────────────────────
       const state = {
-        wght: 400, opsz: 36, slnt: 0, wonk: 0,
+        wght: 400, wdth: 100, opsz: 36, slnt: 0, wonk: 0,
         x: 0.5, y: 0.5,
         alpha: 0, beta: 0, gamma: 0,
+        italic: false,
         colorMode: 'default'
       };
 
+      // ── Message rate counter ─────────────────────────────────────
       let msgCount = 0;
       setInterval(() => {
         document.getElementById('fps-val').textContent = msgCount;
         msgCount = 0;
       }, 1000);
 
-
+      // ── Apply font state to DOM ───────────────────────────────────
       const COLOR_MODES = {
         default: { bg: '#0a0a0a', fg: '#f0ece4' },
         inverted: { bg: '#f0ece4', fg: '#0a0a0a' },
@@ -434,13 +440,17 @@
 
       function applyState() {
         root.style.setProperty('--wght', state.wght);
+        root.style.setProperty('--wdth', state.wdth);
         root.style.setProperty('--opsz', state.opsz);
         root.style.setProperty('--slnt', state.slnt);
         root.style.setProperty('--wonk', state.wonk);
         root.style.setProperty('--cursor-x', (state.x * 100) + '%');
         root.style.setProperty('--cursor-y', (state.y * 100) + '%');
 
+        // Italic op alle woorden
+        words.forEach(w => w.classList.toggle('italic', state.italic));
 
+        // Sidebar values
         document.getElementById('val-wght').textContent = Math.round(state.wght);
         document.getElementById('val-opsz').textContent = Math.round(state.opsz);
         document.getElementById('val-slnt').textContent = Math.round(state.slnt * 10) / 10;
@@ -451,20 +461,23 @@
         document.getElementById('bar-slnt').style.width = ((state.slnt + 90) / 180 * 100) + '%';
         document.getElementById('bar-wonk').style.width = (state.wonk * 100) + '%';
 
-
+        // Sensor readout
         document.getElementById('s-alpha').textContent = Math.round(state.alpha) + '°';
         document.getElementById('s-beta').textContent = Math.round(state.beta) + '°';
         document.getElementById('s-gamma').textContent = Math.round(state.gamma) + '°';
       }
 
+      // ── Handle incoming font message ──────────────────────────────
       function handleMessage(raw) {
         msgCount++;
         let msg;
         try { msg = JSON.parse(raw); } catch { return; }
 
         if (msg.type === 'font') {
+          stopIdle(); // stop idle zodra gyro/controller data binnenkomt
           const a = msg.axes;
           if (a.wght !== undefined) state.wght = Math.min(900, Math.max(100, a.wght));
+          if (a.wdth !== undefined) state.wdth = Math.min(125, Math.max(75, a.wdth));
           if (a.opsz !== undefined) state.opsz = Math.min(144, Math.max(9, a.opsz));
           if (a.slnt !== undefined) state.slnt = Math.min(90, Math.max(-90, a.slnt));
           if (a.wonk !== undefined) state.wonk = Math.min(1, Math.max(0, a.wonk));
@@ -474,6 +487,17 @@
           if (a.beta !== undefined) state.beta = a.beta;
           if (a.gamma !== undefined) state.gamma = a.gamma;
           applyState();
+        }
+
+        if (msg.type === 'italic') {
+          state.italic = msg.value;
+          applyState();
+          // Stuur bevestiging terug naar controller voor trilling/geluid
+          if (simplePeer && simplePeer.connected) {
+            try {
+              simplePeer.send(JSON.stringify({ type: 'feedback', italic: msg.value }));
+            } catch (e) { }
+          }
         }
 
         if (msg.type === 'color') {
@@ -495,6 +519,7 @@
         }
       }
 
+      // ── Idle animation (no connection) ────────────────────────────
       let idleRAF;
       let idleT = 0;
       function idleAnimate() {
@@ -513,6 +538,7 @@
         idleRAF = null;
       }
 
+      // ── Socket.io + SimplePeer ────────────────────────────────────
       let socket, simplePeer, remoteSocketId;
 
       const dotSocket = document.getElementById('dot-socket');
@@ -571,11 +597,13 @@
         document.getElementById('url-short').textContent = socket.id.substring(0, 8) + '…';
         document.getElementById('qr-url-text').textContent = url;
 
+        // Small QR in statusbar
         const qrSmall = qrcode(4, 'L');
         qrSmall.addData(url);
         qrSmall.make();
         document.getElementById('qr').innerHTML = qrSmall.createImgTag(1);
 
+        // Big QR in modal
         const qrBig = qrcode(4, 'L');
         qrBig.addData(url);
         qrBig.make();
@@ -588,6 +616,7 @@
         try { simplePeer.signal(signal); } catch (e) { console.error(e); }
       });
 
+      // Fallback: also accept legacy socket cursor updates
       socket.on('update', data => {
         state.x = data.x;
         state.y = data.y;
