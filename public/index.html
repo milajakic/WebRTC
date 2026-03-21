@@ -18,13 +18,11 @@
       --muted: #2a2a2a;
       --panel: #111;
       --border: #222;
-
       --wght: 400;
       --wdth: 100;
       --slnt: 0;
       --opsz: 36;
       --wonk: 0;
-
       --cursor-x: 50%;
       --cursor-y: 50%;
     }
@@ -46,6 +44,135 @@
       overflow: hidden;
     }
 
+    /* ── WAITING SCREEN ──────────────────────────── */
+    #waiting {
+      position: fixed;
+      inset: 0;
+      z-index: 300;
+      background: var(--bg);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 2rem;
+      transition: opacity 0.8s ease, transform 0.8s ease;
+    }
+
+    #waiting::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(var(--border) 1px, transparent 1px),
+        linear-gradient(90deg, var(--border) 1px, transparent 1px);
+      background-size: 60px 60px;
+      opacity: 0.3;
+      pointer-events: none;
+    }
+
+    #waiting.fade-out {
+      opacity: 0;
+      transform: scale(1.03);
+      pointer-events: none;
+    }
+
+    #waiting.gone {
+      display: none;
+    }
+
+    .w-eyebrow {
+      font-size: 0.6rem;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: #444;
+      position: relative;
+    }
+
+    .w-title {
+      font-variation-settings: 'wght' 800, 'opsz' 72;
+      font-size: clamp(2.5rem, 5vw, 4.5rem);
+      letter-spacing: -0.03em;
+      line-height: 1;
+      text-align: center;
+      position: relative;
+    }
+
+    .w-title span {
+      color: var(--accent);
+    }
+
+    #qr-box {
+      position: relative;
+      background: #fff;
+      padding: 1.2rem;
+      border-radius: 6px;
+    }
+
+    #qr-box img {
+      display: block;
+      image-rendering: pixelated;
+    }
+
+    #qr-box::after {
+      content: '';
+      position: absolute;
+      inset: -8px;
+      border: 2px solid var(--accent);
+      border-radius: 10px;
+      animation: pulse-ring 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse-ring {
+
+      0%,
+      100% {
+        opacity: 0.15;
+        transform: scale(1);
+      }
+
+      50% {
+        opacity: 0.5;
+        transform: scale(1.02);
+      }
+    }
+
+    #waiting-url {
+      font-family: monospace;
+      font-size: 0.68rem;
+      color: #444;
+      position: relative;
+    }
+
+    .w-hint {
+      font-size: 0.72rem;
+      color: #555;
+      position: relative;
+    }
+
+    #waiting-status {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      font-size: 0.62rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #555;
+      position: relative;
+    }
+
+    .wdot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #2a2a2a;
+      transition: background 0.4s, box-shadow 0.4s;
+    }
+
+    .wdot.on {
+      background: var(--accent);
+      box-shadow: 0 0 8px var(--accent);
+    }
+
     /* ── CANVAS ─────────────────────────────────── */
     #canvas {
       position: fixed;
@@ -54,27 +181,44 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      gap: 0;
       padding: 4rem 3rem;
-      transition: background 0.6s ease;
+      opacity: 0;
+      transition: opacity 0.8s ease;
+    }
+
+    #canvas.visible {
+      opacity: 1;
+    }
+
+    #canvas::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(var(--border) 1px, transparent 1px),
+        linear-gradient(90deg, var(--border) 1px, transparent 1px);
+      background-size: 60px 60px;
+      opacity: 0.4;
+      pointer-events: none;
+    }
+
+    #canvas::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(circle 40vw at var(--cursor-x) var(--cursor-y),
+          rgba(244, 70, 17, 0.04) 0%, transparent 70%);
+      pointer-events: none;
     }
 
     .word {
       font-family: 'Fraunces', Georgia, serif;
-      font-variation-settings:
-        'wght' var(--wght),
-        'wdth' var(--wdth),
-        'opsz' var(--opsz),
-        'WONK' var(--wonk);
+      font-variation-settings: 'wght' var(--wght), 'wdth' var(--wdth), 'opsz' var(--opsz), 'WONK' var(--wonk);
       font-style: oblique calc(var(--slnt) * 1deg);
       line-height: 0.88;
       letter-spacing: -0.02em;
       color: var(--fg);
-      transition:
-        font-variation-settings 0.05s linear,
-        font-style 0.05s linear,
-        color 0.3s ease,
-        opacity 0.3s ease;
+      transition: font-variation-settings 0.05s linear, font-style 0.05s linear, color 0.3s ease, opacity 0.3s ease;
       user-select: none;
       white-space: nowrap;
       will-change: font-variation-settings;
@@ -103,85 +247,57 @@
       font-style: italic;
     }
 
-    /* Grid bg */
-    #canvas::before {
-      content: '';
-      position: fixed;
-      inset: 0;
-      background-image:
-        linear-gradient(var(--border) 1px, transparent 1px),
-        linear-gradient(90deg, var(--border) 1px, transparent 1px);
-      background-size: 60px 60px;
-      opacity: 0.4;
-      pointer-events: none;
-    }
-
-    /* Spotlight follow */
-    #canvas::after {
-      content: '';
-      position: fixed;
-      inset: 0;
-      background: radial-gradient(circle 40vw at var(--cursor-x) var(--cursor-y),
-          rgba(244, 70, 17, 0.04) 0%,
-          transparent 70%);
-      pointer-events: none;
-      transition: background 0.1s ease;
-    }
-
     /* ── SIDEBAR ─────────────────────────────────── */
     #sidebar {
       position: fixed;
       right: 0;
       top: 0;
-      bottom: 0;
-      width: 240px;
+      bottom: 36px;
+      width: 220px;
       background: var(--panel);
       border-left: 1px solid var(--border);
       display: flex;
       flex-direction: column;
       padding: 1.5rem 1.2rem;
-      gap: 1.2rem;
+      gap: 1.1rem;
       z-index: 100;
-      transition: transform 0.3s ease;
+      transform: translateX(100%);
+      transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1) 0.3s;
     }
 
-    #sidebar.hidden {
-      transform: translateX(100%);
+    #sidebar.visible {
+      transform: translateX(0);
     }
 
     .sidebar-title {
-      font-family: 'Fraunces', serif;
       font-variation-settings: 'wght' 800, 'opsz' 12;
-      font-size: 0.7rem;
-      letter-spacing: 0.15em;
+      font-size: 0.62rem;
+      letter-spacing: 0.16em;
       text-transform: uppercase;
       color: var(--accent);
-      margin-bottom: 0.4rem;
     }
 
     .axis-row {
       display: flex;
       flex-direction: column;
-      gap: 0.35rem;
+      gap: 0.3rem;
     }
 
     .axis-label {
       display: flex;
       justify-content: space-between;
-      font-size: 0.7rem;
-      letter-spacing: 0.08em;
-      color: #888;
+      font-size: 0.65rem;
+      letter-spacing: 0.05em;
+      color: #666;
     }
 
     .axis-label span:last-child {
       color: var(--accent);
       font-variant-numeric: tabular-nums;
-      min-width: 3ch;
-      text-align: right;
     }
 
     .axis-bar-bg {
-      height: 3px;
+      height: 2px;
       background: var(--muted);
       border-radius: 2px;
       overflow: hidden;
@@ -209,16 +325,22 @@
       padding: 0 1.2rem;
       gap: 1.5rem;
       z-index: 100;
+      transform: translateY(100%);
+      transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1) 0.3s;
+    }
+
+    #statusbar.visible {
+      transform: translateY(0);
     }
 
     .status-pill {
       display: flex;
       align-items: center;
       gap: 0.4rem;
-      font-size: 0.65rem;
+      font-size: 0.6rem;
       letter-spacing: 0.1em;
       text-transform: uppercase;
-      color: #666;
+      color: #555;
     }
 
     .dot {
@@ -226,16 +348,12 @@
       height: 6px;
       border-radius: 50%;
       background: #444;
-      transition: background 0.3s ease;
+      transition: background 0.3s, box-shadow 0.3s;
     }
 
     .dot.connected {
       background: var(--accent);
       box-shadow: 0 0 6px var(--accent);
-    }
-
-    .dot.connecting {
-      background: #ff9900;
     }
 
     .dot.disconnected {
@@ -246,41 +364,34 @@
       margin-left: auto;
       display: flex;
       align-items: center;
-      gap: 0.8rem;
+      gap: 0.7rem;
+      cursor: pointer;
+      opacity: 0.45;
+      transition: opacity 0.2s;
     }
 
-    #qr-wrap img {
-      image-rendering: pixelated;
-      width: 24px;
-      height: 24px;
-      opacity: 0.6;
-      cursor: pointer;
+    #qr-wrap:hover {
+      opacity: 1;
     }
 
     #url-short {
-      font-size: 0.62rem;
+      font-size: 0.58rem;
       color: #555;
       font-family: monospace;
-      cursor: pointer;
-      transition: color 0.2s;
-    }
-
-    #url-short:hover {
-      color: var(--accent);
     }
 
     /* ── QR MODAL ────────────────────────────────── */
     #qr-modal {
       position: fixed;
       inset: 0;
-      background: rgba(0, 0, 0, 0.85);
+      background: rgba(0, 0, 0, 0.88);
       display: flex;
       align-items: center;
       justify-content: center;
-      z-index: 200;
+      z-index: 400;
       opacity: 0;
       pointer-events: none;
-      transition: opacity 0.2s ease;
+      transition: opacity 0.2s;
     }
 
     #qr-modal.visible {
@@ -291,7 +402,7 @@
     #qr-modal-inner {
       background: #fff;
       padding: 2rem;
-      border-radius: 4px;
+      border-radius: 6px;
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -299,32 +410,34 @@
     }
 
     #qr-modal-inner p {
-      font-size: 0.75rem;
+      font-size: 0.68rem;
       color: #333;
       font-family: monospace;
       word-break: break-all;
       max-width: 260px;
       text-align: center;
     }
-
-    /* ── IDLE ANIMATION ──────────────────────────── */
-    @keyframes idle-wght {
-
-      0%,
-      100% {
-        --wght: 100;
-      }
-
-      50% {
-        --wght: 900;
-      }
-    }
   </style>
 </head>
 
 <body>
 
-  <!-- MAIN CANVAS -->
+  <!-- ── WAITING SCREEN ── -->
+  <div id="waiting">
+    <div class="w-eyebrow">Variable Font Controller</div>
+    <div class="w-title">Scan to<br><span>Connect</span></div>
+    <div id="qr-box">
+      <div id="qr-waiting"></div>
+    </div>
+    <div id="waiting-url">Verbinden met server…</div>
+    <div class="w-hint">Open de URL op je smartphone</div>
+    <div id="waiting-status">
+      <div class="wdot" id="wdot"></div>
+      <span id="wstatus-text">Wacht op verbinding…</span>
+    </div>
+  </div>
+
+  <!-- ── CANVAS ── -->
   <div id="canvas">
     <div class="word word-1" id="word1">Variable</div>
     <div class="word word-2" id="word2">Font</div>
@@ -332,14 +445,19 @@
     <div class="word word-4" id="word4">WebRTC</div>
   </div>
 
-  <!-- SIDEBAR: AXES MONITOR -->
+  <!-- ── SIDEBAR ── -->
   <div id="sidebar">
     <div class="sidebar-title">Font Axes</div>
-
     <div class="axis-row">
       <div class="axis-label"><span>Weight</span><span id="val-wght">400</span></div>
       <div class="axis-bar-bg">
         <div class="axis-bar" id="bar-wght" style="width:33%"></div>
+      </div>
+    </div>
+    <div class="axis-row">
+      <div class="axis-label"><span>Width</span><span id="val-wdth">100</span></div>
+      <div class="axis-bar-bg">
+        <div class="axis-bar" id="bar-wdth" style="width:50%"></div>
       </div>
     </div>
     <div class="axis-row">
@@ -360,19 +478,15 @@
         <div class="axis-bar" id="bar-wonk" style="width:0%"></div>
       </div>
     </div>
-
-    <div class="sidebar-title" style="margin-top:0.5rem;">Color Mode</div>
-    <div id="color-mode" style="font-size:0.75rem; color:#666;">Default</div>
-
-    <div class="sidebar-title" style="margin-top:0.5rem;">Sensor Data</div>
-    <div style="font-size:0.68rem; color:#555; line-height:1.8; font-family:monospace;">
-      <div>α <span id="s-alpha">—</span></div>
+    <div class="sidebar-title" style="margin-top:0.2rem;">Sensor</div>
+    <div style="font-size:0.63rem; color:#444; line-height:2; font-family:monospace;">
       <div>β <span id="s-beta">—</span></div>
       <div>γ <span id="s-gamma">—</span></div>
+      <div>italic <span id="s-italic">—</span></div>
     </div>
   </div>
 
-  <!-- STATUS BAR -->
+  <!-- ── STATUS BAR ── -->
   <div id="statusbar">
     <div class="status-pill">
       <div class="dot disconnected" id="dot-socket"></div>
@@ -382,19 +496,16 @@
       <div class="dot disconnected" id="dot-webrtc"></div>
       <span>WebRTC</span>
     </div>
-    <div class="status-pill" id="fps-pill">
-      <span id="fps-val">0</span>
-      <span>msg/s</span>
+    <div class="status-pill">
+      <span id="fps-val">0</span><span>msg/s</span>
     </div>
-
-    <div id="qr-wrap">
-      <span id="url-short" onclick="document.getElementById('qr-modal').classList.toggle('visible')">—</span>
-      <div id="qr" onclick="document.getElementById('qr-modal').classList.toggle('visible')" style="cursor:pointer;">
-      </div>
+    <div id="qr-wrap" onclick="document.getElementById('qr-modal').classList.toggle('visible')">
+      <span id="url-short">—</span>
+      <div id="qr-small"></div>
     </div>
   </div>
 
-  <!-- QR MODAL -->
+  <!-- ── QR MODAL ── -->
   <div id="qr-modal" onclick="this.classList.remove('visible')">
     <div id="qr-modal-inner" onclick="event.stopPropagation()">
       <div id="qr-big"></div>
@@ -416,20 +527,38 @@
       // ── State ────────────────────────────────────────────────────
       const state = {
         wght: 400, wdth: 100, opsz: 36, slnt: 0, wonk: 0,
-        x: 0.5, y: 0.5,
-        alpha: 0, beta: 0, gamma: 0,
-        italic: false,
-        colorMode: 'default'
+        x: 0.5, y: 0.5, beta: 0, gamma: 0, italic: false
       };
 
-      // ── Message rate counter ─────────────────────────────────────
+      // ── Flow ──────────────────────────────────────────────────────
+      let connected = false;
+
+      function transitionToConnected() {
+        if (connected) return;
+        connected = true;
+
+        const waiting = document.getElementById('waiting');
+        waiting.classList.add('fade-out');
+        setTimeout(() => waiting.classList.add('gone'), 900);
+
+        canvas.classList.add('visible');
+        document.getElementById('sidebar').classList.add('visible');
+        document.getElementById('statusbar').classList.add('visible');
+      }
+
+      function setWaitingStatus(text, active) {
+        document.getElementById('wstatus-text').textContent = text;
+        document.getElementById('wdot').classList.toggle('on', active);
+      }
+
+      // ── Msg counter ──────────────────────────────────────────────
       let msgCount = 0;
       setInterval(() => {
         document.getElementById('fps-val').textContent = msgCount;
         msgCount = 0;
       }, 1000);
 
-      // ── Apply font state to DOM ───────────────────────────────────
+      // ── Color modes ───────────────────────────────────────────────
       const COLOR_MODES = {
         default: { bg: '#0a0a0a', fg: '#f0ece4' },
         inverted: { bg: '#f0ece4', fg: '#0a0a0a' },
@@ -438,6 +567,7 @@
         cold: { bg: '#00061a', fg: '#88ccff' }
       };
 
+      // ── Apply state ───────────────────────────────────────────────
       function applyState() {
         root.style.setProperty('--wght', state.wght);
         root.style.setProperty('--wdth', state.wdth);
@@ -446,35 +576,31 @@
         root.style.setProperty('--wonk', state.wonk);
         root.style.setProperty('--cursor-x', (state.x * 100) + '%');
         root.style.setProperty('--cursor-y', (state.y * 100) + '%');
-
-        // Italic op alle woorden
         words.forEach(w => w.classList.toggle('italic', state.italic));
 
-        // Sidebar values
         document.getElementById('val-wght').textContent = Math.round(state.wght);
+        document.getElementById('val-wdth').textContent = Math.round(state.wdth);
         document.getElementById('val-opsz').textContent = Math.round(state.opsz);
         document.getElementById('val-slnt').textContent = Math.round(state.slnt * 10) / 10;
         document.getElementById('val-wonk').textContent = Math.round(state.wonk * 10) / 10;
-
         document.getElementById('bar-wght').style.width = ((state.wght - 100) / 800 * 100) + '%';
+        document.getElementById('bar-wdth').style.width = ((state.wdth - 75) / 50 * 100) + '%';
         document.getElementById('bar-opsz').style.width = ((state.opsz - 9) / 135 * 100) + '%';
         document.getElementById('bar-slnt').style.width = ((state.slnt + 90) / 180 * 100) + '%';
         document.getElementById('bar-wonk').style.width = (state.wonk * 100) + '%';
-
-        // Sensor readout
-        document.getElementById('s-alpha').textContent = Math.round(state.alpha) + '°';
         document.getElementById('s-beta').textContent = Math.round(state.beta) + '°';
         document.getElementById('s-gamma').textContent = Math.round(state.gamma) + '°';
+        document.getElementById('s-italic').textContent = state.italic ? 'aan' : 'uit';
       }
 
-      // ── Handle incoming font message ──────────────────────────────
+      // ── Handle incoming message ───────────────────────────────────
       function handleMessage(raw) {
         msgCount++;
         let msg;
         try { msg = JSON.parse(raw); } catch { return; }
 
         if (msg.type === 'font') {
-          stopIdle(); // stop idle zodra gyro/controller data binnenkomt
+          stopIdle();
           const a = msg.axes;
           if (a.wght !== undefined) state.wght = Math.min(900, Math.max(100, a.wght));
           if (a.wdth !== undefined) state.wdth = Math.min(125, Math.max(75, a.wdth));
@@ -483,7 +609,6 @@
           if (a.wonk !== undefined) state.wonk = Math.min(1, Math.max(0, a.wonk));
           if (a.x !== undefined) state.x = a.x;
           if (a.y !== undefined) state.y = a.y;
-          if (a.alpha !== undefined) state.alpha = a.alpha;
           if (a.beta !== undefined) state.beta = a.beta;
           if (a.gamma !== undefined) state.gamma = a.gamma;
           applyState();
@@ -492,36 +617,21 @@
         if (msg.type === 'italic') {
           state.italic = msg.value;
           applyState();
-          // Stuur bevestiging terug naar controller voor trilling/geluid
           if (simplePeer && simplePeer.connected) {
-            try {
-              simplePeer.send(JSON.stringify({ type: 'feedback', italic: msg.value }));
-            } catch (e) { }
+            try { simplePeer.send(JSON.stringify({ type: 'feedback', italic: msg.value })); } catch (e) { }
           }
         }
 
         if (msg.type === 'color') {
           const m = COLOR_MODES[msg.mode] || COLOR_MODES.default;
-          canvas.style.setProperty('--bg', m.bg);
-          canvas.style.setProperty('--fg', m.fg);
           document.body.style.background = m.bg;
           root.style.setProperty('--fg', m.fg);
           root.style.setProperty('--bg', m.bg);
-          document.getElementById('color-mode').textContent = msg.mode;
-        }
-
-        if (msg.type === 'text') {
-          if (msg.words && msg.words.length) {
-            msg.words.forEach((w, i) => {
-              if (words[i]) words[i].textContent = w;
-            });
-          }
         }
       }
 
-      // ── Idle animation (no connection) ────────────────────────────
-      let idleRAF;
-      let idleT = 0;
+      // ── Idle animation ────────────────────────────────────────────
+      let idleRAF, idleT = 0;
       function idleAnimate() {
         idleT += 0.008;
         state.wght = 100 + (Math.sin(idleT) * 0.5 + 0.5) * 800;
@@ -531,21 +641,25 @@
         applyState();
         idleRAF = requestAnimationFrame(idleAnimate);
       }
-      idleAnimate();
 
       function stopIdle() {
         if (idleRAF) cancelAnimationFrame(idleRAF);
         idleRAF = null;
       }
 
-      // ── Socket.io + SimplePeer ────────────────────────────────────
+      // ── QR helper ─────────────────────────────────────────────────
+      function makeQR(el, size) {
+        const q = qrcode(4, 'L');
+        q.addData(el._url);
+        q.make();
+        el.innerHTML = q.createImgTag(size);
+      }
+
+      // ── Socket + SimplePeer ───────────────────────────────────────
       let socket, simplePeer, remoteSocketId;
 
-      const dotSocket = document.getElementById('dot-socket');
-      const dotWebrtc = document.getElementById('dot-webrtc');
-
-      function setDot(el, status) {
-        el.className = 'dot ' + status;
+      function setDot(id, cls) {
+        document.getElementById(id).className = 'dot ' + cls;
       }
 
       function setupSimplePeer() {
@@ -560,75 +674,73 @@
           }
         });
 
-        simplePeer.on('signal', signal => {
-          socket.emit('signal', remoteSocketId, signal);
-        });
+        simplePeer.on('signal', signal => socket.emit('signal', remoteSocketId, signal));
 
         simplePeer.on('connect', () => {
-          setDot(dotWebrtc, 'connected');
-          stopIdle();
+          setDot('dot-webrtc', 'connected');
+          transitionToConnected();
+          idleAnimate(); // idle speelt op canvas tot eerste data
         });
 
         simplePeer.on('data', data => {
           handleMessage(typeof data === 'string' ? data : new TextDecoder().decode(data));
         });
 
-        simplePeer.on('error', err => console.error('[DESKTOP] Peer error:', err));
+        simplePeer.on('error', err => console.error('[DESKTOP]', err));
 
         simplePeer.on('close', () => {
-          setDot(dotWebrtc, 'disconnected');
+          setDot('dot-webrtc', 'disconnected');
           simplePeer = null;
-          idleAnimate();
         });
       }
 
       function closeSimplePeer() {
         if (simplePeer) { simplePeer.destroy(); simplePeer = null; }
-        setDot(dotWebrtc, 'disconnected');
-        idleAnimate();
+        setDot('dot-webrtc', 'disconnected');
       }
 
       socket = io.connect('/');
 
       socket.on('connect', () => {
-        setDot(dotSocket, 'connected');
+        setDot('dot-socket', 'connected');
+        setWaitingStatus('Socket verbonden — scan de QR-code', true);
 
-        const url = `${new URL(`/controller.html?id=${socket.id}`, window.location).href.replace('http://', 'https://')}`;
+        const url = new URL(`/controller.html?id=${socket.id}`, window.location).href.replace('http://', 'https://');
+
+        document.getElementById('waiting-url').textContent = url;
         document.getElementById('url-short').textContent = socket.id.substring(0, 8) + '…';
         document.getElementById('qr-url-text').textContent = url;
 
-        // Small QR in statusbar
-        const qrSmall = qrcode(4, 'L');
-        qrSmall.addData(url);
-        qrSmall.make();
-        document.getElementById('qr').innerHTML = qrSmall.createImgTag(1);
+        const qw = document.getElementById('qr-waiting');
+        const qs = document.getElementById('qr-small');
+        const qb = document.getElementById('qr-big');
+        [qw, qs, qb].forEach(el => el._url = url);
 
-        // Big QR in modal
-        const qrBig = qrcode(4, 'L');
-        qrBig.addData(url);
-        qrBig.make();
-        document.getElementById('qr-big').innerHTML = qrBig.createImgTag(5);
+        const qWait = qrcode(4, 'L'); qWait.addData(url); qWait.make();
+        qw.innerHTML = qWait.createImgTag(5);
+
+        const qSmall = qrcode(4, 'L'); qSmall.addData(url); qSmall.make();
+        qs.innerHTML = qSmall.createImgTag(1);
+
+        const qBig = qrcode(4, 'L'); qBig.addData(url); qBig.make();
+        qb.innerHTML = qBig.createImgTag(6);
       });
 
       socket.on('signal', (peerId, signal, fromId) => {
         remoteSocketId = fromId;
+        setWaitingStatus('Telefoon gevonden — verbinden…', true);
         if (!simplePeer) setupSimplePeer();
         try { simplePeer.signal(signal); } catch (e) { console.error(e); }
       });
 
-      // Fallback: also accept legacy socket cursor updates
-      socket.on('update', data => {
-        state.x = data.x;
-        state.y = data.y;
-        applyState();
-      });
+      socket.on('update', data => { state.x = data.x; state.y = data.y; applyState(); });
 
       socket.on('client-disconnect', client => {
         if (client && client.id === remoteSocketId) closeSimplePeer();
       });
 
       socket.on('disconnect', () => {
-        setDot(dotSocket, 'disconnected');
+        setDot('dot-socket', 'disconnected');
         closeSimplePeer();
       });
     }

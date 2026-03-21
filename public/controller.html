@@ -28,7 +28,8 @@
             padding: 0;
         }
 
-        html {
+        html,
+        body {
             height: 100%;
         }
 
@@ -40,15 +41,179 @@
             display: flex;
             flex-direction: column;
             overflow: hidden;
-            /* Prevent pull-to-refresh */
             overscroll-behavior: none;
             touch-action: none;
         }
 
-        /* ── HEADER ─────────────────────────────────── */
+        /* ── ONBOARDING ──────────────────────────────── */
+        #onboarding {
+            position: fixed;
+            inset: 0;
+            z-index: 200;
+            background: var(--bg);
+            display: flex;
+            flex-direction: column;
+            transition: opacity 0.6s ease, transform 0.6s ease;
+        }
+
+        #onboarding.fade-out {
+            opacity: 0;
+            transform: translateY(-12px);
+            pointer-events: none;
+        }
+
+        #onboarding.gone {
+            display: none;
+        }
+
+        /* Steps */
+        .step {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 3rem 2rem;
+            gap: 1.8rem;
+            opacity: 0;
+            transform: translateX(40px);
+            transition: opacity 0.45s ease, transform 0.45s ease;
+            pointer-events: none;
+        }
+
+        .step.active {
+            opacity: 1;
+            transform: translateX(0);
+            pointer-events: all;
+        }
+
+        .step.exit {
+            opacity: 0;
+            transform: translateX(-40px);
+        }
+
+        .step-number {
+            font-size: 0.55rem;
+            letter-spacing: 0.22em;
+            text-transform: uppercase;
+            color: var(--accent);
+        }
+
+        .step-icon {
+            font-size: 3.5rem;
+            line-height: 1;
+        }
+
+        .step-title {
+            font-variation-settings: 'wght' 800, 'opsz' 48;
+            font-size: clamp(1.8rem, 7vw, 2.8rem);
+            letter-spacing: -0.02em;
+            text-align: center;
+            line-height: 1.1;
+        }
+
+        .step-title span {
+            color: var(--accent);
+        }
+
+        .step-body {
+            font-size: 0.85rem;
+            color: #666;
+            text-align: center;
+            line-height: 1.7;
+            max-width: 280px;
+        }
+
+        .step-btn {
+            margin-top: 0.5rem;
+            padding: 0.9rem 2.5rem;
+            background: var(--accent);
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            font-family: 'Fraunces', serif;
+            font-variation-settings: 'wght' 700, 'opsz' 16;
+            font-size: 0.85rem;
+            letter-spacing: 0.06em;
+            cursor: pointer;
+            transition: opacity 0.2s, transform 0.1s;
+        }
+
+        .step-btn:active {
+            transform: scale(0.96);
+        }
+
+        .step-btn.secondary {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: #666;
+            padding: 0.7rem 2rem;
+        }
+
+        .step-connecting {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            font-size: 0.65rem;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: #555;
+        }
+
+        .conn-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: #333;
+            transition: background 0.4s, box-shadow 0.4s;
+        }
+
+        .conn-dot.on {
+            background: var(--accent);
+            box-shadow: 0 0 8px var(--accent);
+        }
+
+        /* Dots progress indicator */
+        .step-dots {
+            display: flex;
+            gap: 0.5rem;
+            position: absolute;
+            bottom: 2.5rem;
+        }
+
+        .sdot {
+            width: 5px;
+            height: 5px;
+            border-radius: 50%;
+            background: #2a2a2a;
+            transition: background 0.3s, transform 0.3s;
+        }
+
+        .sdot.active {
+            background: var(--accent);
+            transform: scale(1.3);
+        }
+
+        /* ── MAIN APP ────────────────────────────────── */
+        #app {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            opacity: 0;
+            transition: opacity 0.6s ease;
+            pointer-events: none;
+        }
+
+        #app.visible {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        /* Header */
         header {
             flex: 0 0 auto;
-            padding: 1rem 1.2rem 0.6rem;
+            padding: 0.9rem 1.2rem 0.6rem;
             display: flex;
             align-items: center;
             justify-content: space-between;
@@ -57,7 +222,7 @@
 
         .logo {
             font-variation-settings: 'wght' 800, 'opsz' 12;
-            font-size: 1rem;
+            font-size: 0.95rem;
             letter-spacing: -0.02em;
         }
 
@@ -65,9 +230,9 @@
             color: var(--accent);
         }
 
-        .connection-pills {
+        .pills {
             display: flex;
-            gap: 0.5rem;
+            gap: 0.4rem;
             align-items: center;
         }
 
@@ -78,17 +243,17 @@
             background: var(--muted);
             border: 1px solid var(--border);
             border-radius: 20px;
-            padding: 0.2rem 0.6rem;
-            font-size: 0.6rem;
+            padding: 0.2rem 0.55rem;
+            font-size: 0.58rem;
             letter-spacing: 0.08em;
             text-transform: uppercase;
-            color: #666;
+            color: #555;
             transition: color 0.3s, border-color 0.3s;
         }
 
         .pill.connected {
             color: var(--accent);
-            border-color: rgba(200, 255, 0, 0.3);
+            border-color: rgba(244, 70, 17, 0.35);
         }
 
         .pill-dot {
@@ -98,100 +263,91 @@
             background: currentColor;
         }
 
-        /* ── TOUCH PAD ───────────────────────────────── */
+        /* Touchpad */
         #touchpad {
             position: relative;
             flex: 0 0 auto;
-            height: 38vh;
+            height: 36vh;
             margin: 0.8rem;
             border: 1px solid var(--border);
             border-radius: 8px;
             background: var(--panel);
-            cursor: crosshair;
             overflow: hidden;
         }
 
-        #touchpad-label {
-            position: absolute;
-            top: 0.7rem;
-            left: 0.8rem;
-            font-size: 0.6rem;
-            letter-spacing: 0.12em;
-            text-transform: uppercase;
-            color: #444;
-            pointer-events: none;
-        }
-
-        /* Crosshair guides */
-        #touchpad::before,
-        #touchpad::after {
+        #touchpad::before {
             content: '';
             position: absolute;
-            background: var(--border);
-            pointer-events: none;
-        }
-
-        #touchpad::before {
             left: 50%;
             top: 0;
             bottom: 0;
             width: 1px;
+            background: var(--border);
             transform: translateX(-50%);
         }
 
         #touchpad::after {
+            content: '';
+            position: absolute;
             top: 50%;
             left: 0;
             right: 0;
             height: 1px;
+            background: var(--border);
             transform: translateY(-50%);
+        }
+
+        .tp-label {
+            position: absolute;
+            font-size: 0.52rem;
+            color: #333;
+            letter-spacing: 0.08em;
+            pointer-events: none;
+        }
+
+        .tp-label.tl {
+            top: 0.6rem;
+            left: 0.7rem;
+        }
+
+        .tp-label.br {
+            bottom: 0.6rem;
+            right: 0.7rem;
+        }
+
+        .tp-label.bl {
+            bottom: 0.6rem;
+            left: 0.7rem;
+        }
+
+        .tp-label.tr {
+            top: 0.6rem;
+            right: 0.7rem;
         }
 
         #touch-cursor {
             position: absolute;
-            width: 20px;
-            height: 20px;
+            width: 22px;
+            height: 22px;
             border: 2px solid var(--accent);
             border-radius: 50%;
             transform: translate(-50%, -50%);
             left: 50%;
             top: 50%;
             pointer-events: none;
-            transition: left 0.05s linear, top 0.05s linear;
-            box-shadow: 0 0 12px rgba(200, 255, 0, 0.4);
+            box-shadow: 0 0 12px rgba(244, 70, 17, 0.35);
         }
 
         #touch-cursor::after {
             content: '';
             position: absolute;
-            inset: 3px;
+            inset: 4px;
             border-radius: 50%;
             background: var(--accent);
-            opacity: 0.6;
+            opacity: 0.55;
         }
 
-        /* X = wght, Y = slnt axis labels */
-        #tp-x-label {
-            position: absolute;
-            bottom: 0.6rem;
-            right: 0.8rem;
-            font-size: 0.55rem;
-            color: #444;
-            letter-spacing: 0.1em;
-        }
-
-        #tp-y-label {
-            position: absolute;
-            top: 50%;
-            left: 0.5rem;
-            transform: translateY(-50%) rotate(-90deg);
-            font-size: 0.55rem;
-            color: #444;
-            letter-spacing: 0.1em;
-            transform-origin: center;
-        }
-
-        /* ── SLIDERS ────────────────────────────────── */
+        /* Controls */
         #controls {
             flex: 1 1 auto;
             overflow-y: auto;
@@ -202,34 +358,32 @@
             -webkit-overflow-scrolling: touch;
         }
 
-        .control-row {
+        .ctrl-row {
             background: var(--panel);
             border: 1px solid var(--border);
             border-radius: 6px;
             padding: 0.7rem 0.9rem;
         }
 
-        .control-header {
+        .ctrl-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 0.5rem;
         }
 
-        .control-name {
-            font-size: 0.65rem;
+        .ctrl-name {
+            font-size: 0.62rem;
             letter-spacing: 0.1em;
             text-transform: uppercase;
-            color: #777;
+            color: #666;
         }
 
-        .control-value {
-            font-size: 0.75rem;
+        .ctrl-val {
+            font-size: 0.72rem;
             color: var(--accent);
             font-variant-numeric: tabular-nums;
             font-variation-settings: 'wght' 700, 'opsz' 10;
-            min-width: 4ch;
-            text-align: right;
         }
 
         input[type="range"] {
@@ -240,7 +394,6 @@
             background: var(--border);
             border-radius: 2px;
             outline: none;
-            cursor: pointer;
         }
 
         input[type="range"]::-webkit-slider-thumb {
@@ -250,26 +403,66 @@
             border-radius: 50%;
             background: var(--accent);
             cursor: pointer;
-            box-shadow: 0 0 8px rgba(200, 255, 0, 0.5);
+            box-shadow: 0 0 6px rgba(244, 70, 17, 0.4);
         }
 
-        /* ── GYRO TOGGLE ──────────────────────────────── */
-        .gyro-row {
+        /* Gyro */
+        .section-label {
+            font-size: 0.56rem;
+            letter-spacing: 0.13em;
+            text-transform: uppercase;
+            color: #3a3a3a;
+            padding: 0.2rem 0.8rem 0;
+        }
+
+        .gyro-viz {
+            position: relative;
+            height: 48px;
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            margin: 0 0.8rem;
+            overflow: hidden;
+        }
+
+        .gyro-viz-label {
+            position: absolute;
+            inset: 0;
             display: flex;
-            gap: 0.5rem;
             align-items: center;
+            justify-content: center;
+            font-size: 0.52rem;
+            color: #2a2a2a;
+            letter-spacing: 0.1em;
+            pointer-events: none;
+        }
+
+        #gyro-ball {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: var(--accent);
+            position: absolute;
+            transform: translate(-50%, -50%);
+            left: 50%;
+            top: 50%;
+            box-shadow: 0 0 8px rgba(244, 70, 17, 0.5);
+            transition: left 0.05s, top 0.05s;
+        }
+
+        .gyro-row {
             padding: 0 0.8rem;
         }
 
         .gyro-toggle {
-            flex: 1;
-            padding: 0.7rem;
+            width: 100%;
+            padding: 0.75rem;
             background: var(--panel);
             border: 1px solid var(--border);
             border-radius: 6px;
-            color: #666;
+            color: #555;
             font-family: 'Fraunces', serif;
-            font-size: 0.7rem;
+            font-size: 0.68rem;
             letter-spacing: 0.1em;
             text-transform: uppercase;
             cursor: pointer;
@@ -282,24 +475,32 @@
             color: var(--accent);
         }
 
-        /* ── COLOR MODES ──────────────────────────────── */
+        #gyro-debug {
+            padding: 0.2rem 0.8rem;
+            font-size: 0.62rem;
+            font-family: monospace;
+            color: var(--accent);
+            min-height: 1.2rem;
+        }
+
+        /* Color strip */
         .color-strip {
             display: flex;
             gap: 0.5rem;
-            padding: 0 0.8rem 0.8rem;
+            padding: 0 0.8rem 0.5rem;
         }
 
         .color-btn {
             flex: 1;
-            height: 32px;
+            height: 30px;
             border-radius: 4px;
             border: 1px solid var(--border);
             cursor: pointer;
-            transition: transform 0.1s, border-color 0.2s;
+            transition: transform 0.1s, border-color 0.2s, border-width 0.2s;
         }
 
         .color-btn:active {
-            transform: scale(0.93);
+            transform: scale(0.92);
         }
 
         .color-btn.active {
@@ -327,145 +528,223 @@
             background: linear-gradient(135deg, #00061a 50%, #88ccff 50%);
         }
 
-        /* ── GYRO INDICATOR ───────────────────────────── */
-        .gyro-viz {
-            position: relative;
-            height: 50px;
+        /* Italic indicator */
+        #italic-indicator {
+            margin: 0 0.8rem 0.8rem;
+            padding: 0.5rem 0.8rem;
             background: var(--panel);
             border: 1px solid var(--border);
             border-radius: 6px;
-            margin: 0 0.8rem;
-            overflow: hidden;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        #gyro-ball {
-            width: 16px;
-            height: 16px;
-            border-radius: 50%;
-            background: var(--accent);
-            position: absolute;
-            transition: left 0.05s, top 0.05s;
-            box-shadow: 0 0 8px rgba(244, 70, 17, 0.6);
-            transform: translate(-50%, -50%);
-            left: 50%;
-            top: 50%;
-        }
-
-        .gyro-viz-label {
-            font-size: 0.55rem;
-            color: #333;
-            letter-spacing: 0.1em;
-            pointer-events: none;
-            z-index: 1;
-        }
-
-        /* section labels */
-        .section-label {
-            font-size: 0.58rem;
-            letter-spacing: 0.12em;
-            text-transform: uppercase;
+            font-size: 0.62rem;
             color: #444;
-            padding: 0.3rem 0.8rem 0;
+            letter-spacing: 0.08em;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        #italic-indicator span {
+            color: #333;
+        }
+
+        #italic-indicator.on {
+            border-color: rgba(244, 70, 17, 0.4);
+        }
+
+        #italic-indicator.on span {
+            color: var(--accent);
         }
     </style>
 </head>
 
 <body>
 
-    <!-- HEADER -->
-    <header>
-        <div class="logo">Variable<span>Font</span></div>
-        <div class="connection-pills">
-            <div class="pill" id="pill-socket">
-                <div class="pill-dot"></div>
-                <span>Socket</span>
-            </div>
-            <div class="pill" id="pill-webrtc">
-                <div class="pill-dot"></div>
-                <span>WebRTC</span>
+    <!-- ── ONBOARDING ── -->
+    <div id="onboarding">
+
+        <!-- Stap 1: Verbinden -->
+        <div class="step active" id="step-1">
+            <div class="step-number">Stap 1 van 3</div>
+            <div class="step-icon">📡</div>
+            <div class="step-title">Verbinden<br>met <span>Desktop</span></div>
+            <div class="step-body">Wacht terwijl de WebRTC verbinding wordt opgezet met de desktop.</div>
+            <div class="step-connecting">
+                <div class="conn-dot" id="conn-dot-1"></div>
+                <span id="conn-text-1">Socket verbinden…</span>
             </div>
         </div>
-    </header>
 
-    <!-- TOUCHPAD: X = weight, Y = slant -->
-    <div id="touchpad">
-        <div id="touchpad-label">Touch Pad</div>
-        <div style="position:absolute;bottom:0.6rem;left:0.8rem;font-size:0.55rem;color:#333;letter-spacing:0.08em;">←
-            WEIGHT →</div>
-        <div
-            style="position:absolute;top:0.6rem;right:0.7rem;font-size:0.55rem;color:#333;letter-spacing:0.08em;writing-mode:vertical-lr;">
-            SLANT ↑</div>
-        <div id="touch-cursor"></div>
+        <!-- Stap 2: Gyro activeren -->
+        <div class="step" id="step-2">
+            <div class="step-number">Stap 2 van 3</div>
+            <div class="step-icon">🌀</div>
+            <div class="step-title">Activeer<br><span>Gyroscoop</span></div>
+            <div class="step-body">
+                Kantel je gsm om het lettertype te besturen.<br>
+                <strong style="color:#666;">Voor/achter</strong> = gewicht &nbsp;·&nbsp;
+                <strong style="color:#666;">Links/rechts</strong> = breedte
+            </div>
+            <button class="step-btn" id="gyro-onboard-btn">Gyroscoop inschakelen</button>
+            <button class="step-btn secondary" id="gyro-skip-btn">Overslaan</button>
+        </div>
+
+        <!-- Stap 3: Klaar -->
+        <div class="step" id="step-3">
+            <div class="step-number">Stap 3 van 3</div>
+            <div class="step-icon">✦</div>
+            <div class="step-title">Alles<br><span>Klaar</span></div>
+            <div class="step-body">
+                Gebruik het touchpad en sliders om het font te besturen.<br>
+                <strong style="color:#666;">Schud</strong> je gsm om italic te togglen.
+            </div>
+            <button class="step-btn" id="start-btn">Start →</button>
+        </div>
+
+        <!-- Progress dots -->
+        <div class="step-dots">
+            <div class="sdot active" id="sdot-1"></div>
+            <div class="sdot" id="sdot-2"></div>
+            <div class="sdot" id="sdot-3"></div>
+        </div>
+
     </div>
 
-    <!-- CONTROLS -->
-    <div id="controls">
+    <!-- ── MAIN APP ── -->
+    <div id="app">
 
-        <div class="section-label">Axes</div>
-
-        <!-- Optical Size -->
-        <div class="control-row">
-            <div class="control-header">
-                <span class="control-name">Optical Size</span>
-                <span class="control-value" id="label-opsz">36</span>
+        <header>
+            <div class="logo">Variable<span>Font</span></div>
+            <div class="pills">
+                <div class="pill" id="pill-socket">
+                    <div class="pill-dot"></div><span>Socket</span>
+                </div>
+                <div class="pill" id="pill-webrtc">
+                    <div class="pill-dot"></div><span>WebRTC</span>
+                </div>
             </div>
-            <input type="range" id="slider-opsz" min="9" max="144" step="1" value="36">
+        </header>
+
+        <div id="touchpad">
+            <div class="tp-label tl">Touch Pad</div>
+            <div class="tp-label bl">← weight →</div>
+            <div class="tp-label tr" style="writing-mode:vertical-lr;right:0.5rem;top:50%;transform:translateY(-50%)">
+                slant</div>
+            <div id="touch-cursor"></div>
         </div>
 
-        <!-- Wonky -->
-        <div class="control-row">
-            <div class="control-header">
-                <span class="control-name">Wonky</span>
-                <span class="control-value" id="label-wonk">0</span>
+        <div id="controls">
+
+            <div class="section-label">Axes</div>
+
+            <div class="ctrl-row">
+                <div class="ctrl-header">
+                    <span class="ctrl-name">Optical Size</span>
+                    <span class="ctrl-val" id="label-opsz">36</span>
+                </div>
+                <input type="range" id="slider-opsz" min="9" max="144" step="1" value="36">
             </div>
-            <input type="range" id="slider-wonk" min="0" max="1" step="0.01" value="0">
+
+            <div class="ctrl-row">
+                <div class="ctrl-header">
+                    <span class="ctrl-name">Wonky</span>
+                    <span class="ctrl-val" id="label-wonk">0</span>
+                </div>
+                <input type="range" id="slider-wonk" min="0" max="1" step="0.01" value="0">
+            </div>
+
+            <div class="section-label">Gyroscoop</div>
+
+            <div class="gyro-viz">
+                <div class="gyro-viz-label">kantel om weight + width te sturen</div>
+                <div id="gyro-ball"></div>
+            </div>
+
+            <div class="gyro-row">
+                <button class="gyro-toggle" id="gyro-btn">Enable Gyro</button>
+            </div>
+            <div id="gyro-debug"></div>
+
+            <div class="section-label">Kleur</div>
+
+            <div class="color-strip">
+                <div class="color-btn active" data-mode="default"></div>
+                <div class="color-btn" data-mode="inverted"></div>
+                <div class="color-btn" data-mode="accent"></div>
+                <div class="color-btn" data-mode="hot"></div>
+                <div class="color-btn" data-mode="cold"></div>
+            </div>
+
+            <div id="italic-indicator">
+                <span>Italic</span>
+                <span id="italic-val">uit</span>
+            </div>
+
         </div>
-
-        <div class="section-label">Gyroscope</div>
-
-        <div class="gyro-viz">
-            <div class="gyro-viz-label">tilt to control weight + slant</div>
-            <div id="gyro-ball"></div>
-        </div>
-
-        <div class="gyro-row">
-            <button class="gyro-toggle" id="gyro-btn">Enable Gyro</button>
-        </div>
-        <div style="padding: 0.3rem 0.8rem; font-size: 0.65rem; font-family: monospace; color: #F44611; min-height: 1.2rem;"
-            id="gyro-debug"></div>
-
-        <div class="section-label">Color Mode</div>
-
-        <div class="color-strip">
-            <div class="color-btn active" data-mode="default" title="Default"></div>
-            <div class="color-btn" data-mode="inverted" title="Inverted"></div>
-            <div class="color-btn" data-mode="accent" title="Acid"></div>
-            <div class="color-btn" data-mode="hot" title="Hot"></div>
-            <div class="color-btn" data-mode="cold" title="Cold"></div>
-        </div>
-
     </div>
 
     <script src="/socket.io/socket.io.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/simple-peer@9.11.1/simplepeer.min.js"></script>
     <script>
         {
-            // ── Helpers ───────────────────────────────────────────────────
             const $ = id => document.getElementById(id);
-            const clamp = (v, min, max) => Math.min(max, Math.max(min, v));
+            const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
             const lerp = (a, b, t) => a + (b - a) * t;
 
+            // ── Onboarding flow ───────────────────────────────────────────
+            let currentStep = 1;
+
+            function goToStep(n) {
+                const prev = $(`step-${currentStep}`);
+                prev.classList.remove('active');
+                prev.classList.add('exit');
+                setTimeout(() => prev.classList.remove('exit'), 500);
+
+                currentStep = n;
+                $(`step-${n}`).classList.add('active');
+
+                document.querySelectorAll('.sdot').forEach((d, i) => {
+                    d.classList.toggle('active', i + 1 === n);
+                });
+            }
+
+            function finishOnboarding() {
+                const ob = $('onboarding');
+                ob.classList.add('fade-out');
+                setTimeout(() => ob.classList.add('gone'), 650);
+                $('app').classList.add('visible');
+            }
+
+            // WebRTC connected → go to step 2
+            function onWebRTCConnected() {
+                $('conn-dot-1').classList.add('on');
+                $('conn-text-1').textContent = 'Verbonden!';
+                setTimeout(() => goToStep(2), 800);
+            }
+
+            $('gyro-onboard-btn').addEventListener('click', async () => {
+                await enableGyro();
+                goToStep(3);
+            });
+
+            $('gyro-skip-btn').addEventListener('click', () => goToStep(3));
+            $('start-btn').addEventListener('click', finishOnboarding);
+
+            // Socket connected → update step 1 dot
+            function onSocketConnected() {
+                $('conn-dot-1').style.background = '#F44611';
+                $('conn-dot-1').style.boxShadow = '0 0 8px #F44611';
+                $('conn-text-1').textContent = 'Socket verbonden — wacht op WebRTC…';
+            }
+
             // ── State ────────────────────────────────────────────────────
-            const axes = { wght: 400, wdth: 100, opsz: 36, slnt: 0, wonk: 0, x: 0.5, y: 0.5, alpha: 0, beta: 0, gamma: 0, italic: false };
+            const axes = { wght: 400, wdth: 100, opsz: 36, slnt: 0, wonk: 0, x: 0.5, y: 0.5, beta: 0, gamma: 0, italic: false };
             let gyroEnabled = false;
             let gyroSmooth = { beta: 0, gamma: 0 };
 
             // ── Schud detectie ────────────────────────────────────────────
             let lastAcc = { x: 0, y: 0, z: 0 };
             let italicLocked = false;
+
             window.addEventListener('devicemotion', e => {
                 if (!gyroEnabled) return;
                 const acc = e.accelerationIncludingGravity;
@@ -474,10 +753,10 @@
                 const dy = Math.abs(acc.y - lastAcc.y);
                 const dz = Math.abs(acc.z - lastAcc.z);
                 lastAcc = { x: acc.x, y: acc.y, z: acc.z };
-                const shake = dx + dy + dz;
-                if (shake > 30 && !italicLocked) {
+                if (dx + dy + dz > 30 && !italicLocked) {
                     axes.italic = !axes.italic;
                     italicLocked = true;
+                    updateItalicIndicator();
                     setTimeout(() => { italicLocked = false; }, 800);
                     const msg = JSON.stringify({ type: 'italic', value: axes.italic });
                     if (simplePeer && simplePeer.connected) {
@@ -486,7 +765,13 @@
                 }
             });
 
-            // ── RAF loop: smooth + send ───────────────────────────────────
+            function updateItalicIndicator() {
+                const el = $('italic-indicator');
+                $('italic-val').textContent = axes.italic ? 'aan' : 'uit';
+                el.classList.toggle('on', axes.italic);
+            }
+
+            // ── RAF loop ─────────────────────────────────────────────────
             let rafRunning = false;
             function startRAF() {
                 if (rafRunning) return;
@@ -499,39 +784,28 @@
                     gyroSmooth.beta = lerp(gyroSmooth.beta, axes.beta, 0.12);
                     gyroSmooth.gamma = lerp(gyroSmooth.gamma, axes.gamma, 0.12);
 
-                    // beta (-90..90) → weight (100..900)
                     axes.wght = clamp(100 + ((gyroSmooth.beta + 90) / 180) * 800, 100, 900);
-                    // gamma (-90..90) → width (75..125)
                     axes.wdth = clamp(75 + ((gyroSmooth.gamma + 90) / 180) * 50, 75, 125);
 
-                    // Update gyro ball
                     const ball = $('gyro-ball');
                     const viz = document.querySelector('.gyro-viz');
-                    const bx = clamp((gyroSmooth.gamma + 90) / 180, 0, 1) * viz.clientWidth;
-                    const by = clamp((gyroSmooth.beta + 90) / 180, 0, 1) * viz.clientHeight;
-                    ball.style.left = bx + 'px';
-                    ball.style.top = by + 'px';
+                    ball.style.left = clamp((gyroSmooth.gamma + 90) / 180, 0, 1) * viz.clientWidth + 'px';
+                    ball.style.top = clamp((gyroSmooth.beta + 90) / 180, 0, 1) * viz.clientHeight + 'px';
                 }
 
                 sendFontMessage();
                 requestAnimationFrame(loop);
             }
 
-            // ── Throttled send ───────────────────────────────────────────
-            const SEND_INTERVAL = 16; // ~60fps cap
+            // ── Send ──────────────────────────────────────────────────────
+            const SEND_INTERVAL = 16;
             let lastSent = 0;
 
             function sendFontMessage() {
                 const now = performance.now();
                 if (now - lastSent < SEND_INTERVAL) return;
                 lastSent = now;
-
-                const msg = JSON.stringify({
-                    type: 'font',
-                    axes: { ...axes }
-                });
-
-                // Prefer datachannel
+                const msg = JSON.stringify({ type: 'font', axes: { ...axes } });
                 if (simplePeer && simplePeer.connected) {
                     try { simplePeer.send(msg); } catch (e) { }
                 } else if (socket && socket.connected && targetSocketId) {
@@ -543,39 +817,28 @@
             const touchpad = $('touchpad');
             const cursor = $('touch-cursor');
 
-            function updateFromTouch(clientX, clientY) {
+            function updateFromTouch(cx, cy) {
                 const rect = touchpad.getBoundingClientRect();
-                const nx = clamp((clientX - rect.left) / rect.width, 0, 1);
-                const ny = clamp((clientY - rect.top) / rect.height, 0, 1);
-
+                const nx = clamp((cx - rect.left) / rect.width, 0, 1);
+                const ny = clamp((cy - rect.top) / rect.height, 0, 1);
                 axes.x = nx;
                 axes.y = ny;
                 axes.wght = clamp(100 + nx * 800, 100, 900);
-                axes.slnt = clamp((ny - 0.5) * -24, -12, 12); // top = positive slant
-
+                axes.slnt = clamp((ny - 0.5) * -24, -12, 12);
                 cursor.style.left = (nx * 100) + '%';
                 cursor.style.top = (ny * 100) + '%';
             }
 
-            touchpad.addEventListener('touchstart', e => {
-                e.preventDefault();
-                updateFromTouch(e.touches[0].clientX, e.touches[0].clientY);
-            }, { passive: false });
-
-            touchpad.addEventListener('touchmove', e => {
-                e.preventDefault();
-                updateFromTouch(e.touches[0].clientX, e.touches[0].clientY);
-            }, { passive: false });
-
+            touchpad.addEventListener('touchstart', e => { e.preventDefault(); updateFromTouch(e.touches[0].clientX, e.touches[0].clientY); }, { passive: false });
+            touchpad.addEventListener('touchmove', e => { e.preventDefault(); updateFromTouch(e.touches[0].clientX, e.touches[0].clientY); }, { passive: false });
             touchpad.addEventListener('mousedown', e => updateFromTouch(e.clientX, e.clientY));
             touchpad.addEventListener('mousemove', e => { if (e.buttons) updateFromTouch(e.clientX, e.clientY); });
 
             // ── Sliders ───────────────────────────────────────────────────
-            function setupSlider(id, axisKey, labelId) {
-                const el = $(id);
-                const lb = $(labelId);
+            function setupSlider(id, key, labelId) {
+                const el = $(id), lb = $(labelId);
                 el.addEventListener('input', () => {
-                    axes[axisKey] = parseFloat(el.value);
+                    axes[key] = parseFloat(el.value);
                     lb.textContent = Math.round(parseFloat(el.value) * 100) / 100;
                 });
             }
@@ -583,40 +846,27 @@
             setupSlider('slider-opsz', 'opsz', 'label-opsz');
             setupSlider('slider-wonk', 'wonk', 'label-wonk');
 
-            // ── Gyroscope ─────────────────────────────────────────────────
-
-            // Warn if not HTTPS (gyro blocked on plain HTTP, except localhost)
+            // ── Gyro ──────────────────────────────────────────────────────
             const isSecure = location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1';
-            if (!isSecure) {
-                $('gyro-btn').textContent = 'Gyro: HTTPS vereist';
-                $('gyro-btn').style.opacity = '0.4';
-                $('gyro-btn').disabled = true;
+
+            async function enableGyro() {
+                if (!isSecure) { $('gyro-debug').textContent = '⚠ HTTPS vereist'; return; }
+                if (typeof DeviceOrientationEvent !== 'undefined' &&
+                    typeof DeviceOrientationEvent.requestPermission === 'function') {
+                    try {
+                        const perm = await DeviceOrientationEvent.requestPermission();
+                        if (perm !== 'granted') { $('gyro-debug').textContent = '⚠ Geen toegang'; return; }
+                    } catch (e) { $('gyro-debug').textContent = '⚠ ' + e.message; return; }
+                }
+                window.addEventListener('deviceorientation', onOrientation);
+                gyroEnabled = true;
+                $('gyro-btn').textContent = 'Disable Gyro';
+                $('gyro-btn').classList.add('active');
             }
 
             $('gyro-btn').addEventListener('click', async () => {
                 if (!gyroEnabled) {
-                    // iOS 13+ requires explicit permission
-                    if (typeof DeviceOrientationEvent !== 'undefined' &&
-                        typeof DeviceOrientationEvent.requestPermission === 'function') {
-                        try {
-                            const perm = await DeviceOrientationEvent.requestPermission();
-                            if (perm !== 'granted') { alert('Gyro permission geweigerd'); return; }
-                        } catch (e) { alert('Permission error: ' + e.message); return; }
-                    }
-
-                    // Check if events actually fire (Android sometimes silent)
-                    let testFired = false;
-                    const testHandler = () => { testFired = true; };
-                    window.addEventListener('deviceorientation', testHandler);
-                    setTimeout(() => {
-                        window.removeEventListener('deviceorientation', testHandler);
-                        if (!testFired) $('gyro-debug').textContent = '⚠ Geen gyro events ontvangen';
-                    }, 1500);
-
-                    window.addEventListener('deviceorientation', onOrientation);
-                    gyroEnabled = true;
-                    $('gyro-btn').textContent = 'Disable Gyro';
-                    $('gyro-btn').classList.add('active');
+                    await enableGyro();
                 } else {
                     window.removeEventListener('deviceorientation', onOrientation);
                     gyroEnabled = false;
@@ -627,10 +877,9 @@
             });
 
             function onOrientation(e) {
-                axes.alpha = e.alpha != null ? e.alpha : 0;
                 axes.beta = e.beta != null ? e.beta : 0;
                 axes.gamma = e.gamma != null ? e.gamma : 0;
-                $('gyro-debug').textContent = `β ${Math.round(axes.beta)}°→wght  γ ${Math.round(axes.gamma)}°→wdth`;
+                $('gyro-debug').textContent = `β ${Math.round(axes.beta)}° → wght   γ ${Math.round(axes.gamma)}° → wdth`;
             }
 
             // ── Color buttons ─────────────────────────────────────────────
@@ -638,7 +887,6 @@
                 btn.addEventListener('click', () => {
                     document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
                     btn.classList.add('active');
-
                     const msg = JSON.stringify({ type: 'color', mode: btn.dataset.mode });
                     if (simplePeer && simplePeer.connected) {
                         try { simplePeer.send(msg); } catch (e) { }
@@ -646,23 +894,21 @@
                 });
             });
 
-            // ── Feedback: trilling + geluid (iOS fallback) ────────────────
+            // ── Feedback: trilling + geluid ───────────────────────────────
             let audioCtx = null;
 
-            function triggerFeedback(italic) {
-                // Trilling (Android + sommige browsers)
-                if (navigator.vibrate) {
-                    navigator.vibrate(italic ? [80, 40, 80] : [40]);
-                }
+            document.addEventListener('touchstart', () => {
+                if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }, { once: true });
 
-                // Geluid fallback via Web Audio API (werkt op iOS)
+            function triggerFeedback(italic) {
+                if (navigator.vibrate) navigator.vibrate(italic ? [80, 40, 80] : [40]);
                 try {
                     if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
                     const osc = audioCtx.createOscillator();
                     const gain = audioCtx.createGain();
                     osc.connect(gain);
                     gain.connect(audioCtx.destination);
-                    // Italic aan = hoge toon, italic uit = lage toon
                     osc.frequency.value = italic ? 880 : 440;
                     osc.type = 'sine';
                     gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
@@ -672,20 +918,11 @@
                 } catch (e) { }
             }
 
-            // AudioContext moet gestart worden na gebruikersinteractie (iOS vereiste)
-            // We initialiseren hem bij de eerste touch op de pagina
-            document.addEventListener('touchstart', () => {
-                if (!audioCtx) {
-                    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                }
-            }, { once: true });
-
             // ── Socket + SimplePeer ───────────────────────────────────────
             let socket, simplePeer, targetSocketId;
 
-            function setPill(id, connected) {
-                const el = $(id);
-                el.classList.toggle('connected', connected);
+            function setPill(id, on) {
+                $(id).classList.toggle('connected', on);
             }
 
             function setupSimplePeer() {
@@ -700,31 +937,24 @@
                     }
                 });
 
-                simplePeer.on('signal', signal => {
-                    socket.emit('signal', targetSocketId, signal);
-                });
+                simplePeer.on('signal', signal => socket.emit('signal', targetSocketId, signal));
 
                 simplePeer.on('connect', () => {
                     setPill('pill-webrtc', true);
+                    onWebRTCConnected();
+                    startRAF();
                 });
 
-                // Ontvang berichten van desktop
                 simplePeer.on('data', data => {
                     const raw = typeof data === 'string' ? data : new TextDecoder().decode(data);
                     try {
                         const msg = JSON.parse(raw);
-                        if (msg.type === 'feedback') {
-                            triggerFeedback(msg.italic);
-                        }
+                        if (msg.type === 'feedback') triggerFeedback(msg.italic);
                     } catch (e) { }
                 });
 
-                simplePeer.on('error', err => console.error('[CTRL] Peer error:', err));
-
-                simplePeer.on('close', () => {
-                    setPill('pill-webrtc', false);
-                    simplePeer = null;
-                });
+                simplePeer.on('error', err => console.error('[CTRL]', err));
+                simplePeer.on('close', () => { setPill('pill-webrtc', false); simplePeer = null; });
             }
 
             function getParam(name) {
@@ -735,17 +965,17 @@
 
             targetSocketId = getParam('id');
             if (!targetSocketId) {
-                document.body.innerHTML = '<div style="padding:2rem;color:#ff4444;font-family:monospace;">Missing ?id= parameter</div>';
+                document.body.innerHTML = '<div style="padding:2rem;color:#ff4444;font-family:monospace;font-size:0.9rem;">Missing ?id= parameter</div>';
             } else {
                 socket = io.connect('/');
 
                 socket.on('connect', () => {
                     setPill('pill-socket', true);
+                    onSocketConnected();
                     setupSimplePeer();
-                    startRAF();
                 });
 
-                socket.on('signal', (peerId, signal, fromId) => {
+                socket.on('signal', (peerId, signal) => {
                     if (!simplePeer) setupSimplePeer();
                     try { simplePeer.signal(signal); } catch (e) { console.error(e); }
                 });
