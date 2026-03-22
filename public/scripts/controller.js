@@ -3,7 +3,7 @@
     const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
     const lerp = (a, b, t) => a + (b - a) * t;
 
-    // ── Tabs ──────────────────────────────────────────────────────
+
     document.querySelectorAll('.tab-btn').forEach(btn => {
         btn.addEventListener('click', () => {
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -13,7 +13,6 @@
         });
     });
 
-    // ── Onboarding ────────────────────────────────────────────────
     let currentStep = 1;
 
     const goToStep = (n) => {
@@ -49,12 +48,11 @@
         $('conn-text-1').textContent = 'Socket verbonden — wacht op WebRTC…';
     };
 
-    // ── State ────────────────────────────────────────────────────
+
     const axes = { wght: 400, wdth: 100, opsz: 36, slnt: 0, wonk: 0, x: 0.5, y: 0.5, beta: 0, gamma: 0, italic: false };
     let gyroEnabled = false;
     let gyroSmooth = { beta: 0, gamma: 0 };
 
-    // ── Schud detectie ────────────────────────────────────────────
     let lastAcc = { x: 0, y: 0, z: 0 };
     let italicLocked = false;
 
@@ -68,7 +66,6 @@
             axes.italic = !axes.italic;
             italicLocked = true;
             updateItalicIndicator();
-            // Flash shake indicator
             const si = $('shake-indicator');
             si.classList.add('shook');
             setTimeout(() => si.classList.remove('shook'), 600);
@@ -82,7 +79,6 @@
         $('italic-indicator').classList.toggle('on', axes.italic);
     };
 
-    // ── RAF loop ──────────────────────────────────────────────────
     let rafRunning = false;
     const startRAF = () => {
         if (rafRunning) return;
@@ -98,7 +94,6 @@
             axes.wght = clamp(100 + ((gyroSmooth.beta + 90) / 180) * 800, 100, 900);
             axes.wdth = clamp(75 + ((gyroSmooth.gamma + 90) / 180) * 50, 75, 125);
 
-            // Update grote gyro viz
             const viz = $('gyro-viz-big');
             const ball = $('gyro-ball-big');
             const bx = clamp((gyroSmooth.gamma + 90) / 180, 0, 1) * viz.clientWidth;
@@ -106,7 +101,6 @@
             ball.style.left = bx + 'px';
             ball.style.top = by + 'px';
 
-            // Update readings
             $('gr-wght').textContent = Math.round(axes.wght);
             $('gr-wdth').textContent = Math.round(axes.wdth);
         }
@@ -115,7 +109,6 @@
         requestAnimationFrame(loop);
     }
 
-    // ── Send helpers ──────────────────────────────────────────────
     const SEND_INTERVAL = 16;
     let lastSent = 0;
 
@@ -133,7 +126,6 @@
         send({ type: 'font', axes: { ...axes } });
     }
 
-    // ── Touchpad ──────────────────────────────────────────────────
     const touchpad = $('touchpad');
     const cursor = $('touch-cursor');
 
@@ -154,7 +146,6 @@
     touchpad.addEventListener('mousedown', e => updateFromTouch(e.clientX, e.clientY));
     touchpad.addEventListener('mousemove', e => { if (e.buttons) updateFromTouch(e.clientX, e.clientY); });
 
-    // ── Sliders ───────────────────────────────────────────────────
     const setupSlider = (id, key, labelId) => {
         const el = $(id), lb = $(labelId);
         el.addEventListener('input', () => {
@@ -165,7 +156,6 @@
     setupSlider('slider-opsz', 'opsz', 'label-opsz');
     setupSlider('slider-wonk', 'wonk', 'label-wonk');
 
-    // ── Gyro ──────────────────────────────────────────────────────
     const isSecure = location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1';
 
     const enableGyro = async () => {
@@ -196,10 +186,8 @@
         if (gyroEnabled) disableGyro(); else await enableGyro();
     });
 
-    // "Gyro uitschakelen" knop op touchpad overlay
     $('tp-disable-gyro-btn').addEventListener('click', () => {
         disableGyro();
-        // Spring naar touch tab
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
         document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
         document.querySelector('[data-tab="touch"]').classList.add('active');
@@ -211,7 +199,6 @@
         axes.gamma = e.gamma != null ? e.gamma : 0;
     };
 
-    // ── Color buttons ─────────────────────────────────────────────
     document.querySelectorAll('.color-btn').forEach(btn => {
         btn.addEventListener('click', () => {
             document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
@@ -220,7 +207,6 @@
         });
     });
 
-    // ── Speech ────────────────────────────────────────────────────
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition || window.mozSpeechRecognition || window.msSpeechRecognition;
     const isiOS = /iP(hone|od|ad)/.test(navigator.platform) || (navigator.userAgent.includes('Mac') && 'ontouchend' in document);
     let recognition = null;
@@ -302,7 +288,6 @@
         $('speech-lang-btn').textContent = speechLang === 'nl-NL' ? 'NL' : 'EN';
     });
 
-    // ── Feedback ──────────────────────────────────────────────────
     let audioCtx = null;
 
     document.addEventListener('touchstart', () => {
@@ -325,7 +310,6 @@
         } catch (e) { }
     }
 
-    // ── Disconnect ────────────────────────────────────────────────
     const showDCBanner = (title, body, type) => {
         $('dc-banner-title').textContent = title;
         $('dc-banner-body').textContent = body;
@@ -335,7 +319,6 @@
 
     const hideDCBanner = () => { $('dc-banner').classList.remove('visible'); };
 
-    // ── Socket + SimplePeer ───────────────────────────────────────
     let socket, simplePeer, targetSocketId;
 
     const setPill = (id, on) => { $(id).classList.toggle('connected', on); };

@@ -3,13 +3,13 @@
     const canvas = document.querySelector('#canvas');
     const words = document.querySelectorAll('.word');
 
-    // ── State ────────────────────────────────────────────────────
+    
     const state = {
     wght: 400, wdth: 100, opsz: 36, slnt: 0, wonk: 0,
     x: 0.5, y: 0.5, beta: 0, gamma: 0, italic: false
     };
 
-    // ── Flow ──────────────────────────────────────────────────────
+    
     let connected = false;
 
     const transitionToConnected = () => {
@@ -30,14 +30,14 @@
     document.querySelector('#wdot').classList.toggle('on', active);
     };
 
-    // ── Msg counter ──────────────────────────────────────────────
+    
     let msgCount = 0;
     setInterval(() => {
     document.querySelector('#fps-val').textContent = msgCount;
     msgCount = 0;
     }, 1000);
 
-    // ── Color modes ───────────────────────────────────────────────
+    
     const COLOR_MODES = {
     default: { bg: '#0a0a0a', fg: '#f0ece4' },
     inverted: { bg: '#f0ece4', fg: '#0a0a0a' },
@@ -45,8 +45,7 @@
     hot: { bg: '#1a0000', fg: '#ff6644' },
     cold: { bg: '#00061a', fg: '#88ccff' }
     };
-
-    // ── Apply state ───────────────────────────────────────────────
+    
     const applyState = () => {
     root.style.setProperty('--wght', state.wght);
     root.style.setProperty('--wdth', state.wdth);
@@ -72,7 +71,6 @@
     document.querySelector('#s-italic').textContent = state.italic ? 'aan' : 'uit';
     }
 
-    // ── Handle incoming message ───────────────────────────────────
     const handleMessage = (raw) => {
     msgCount++;
     let msg;
@@ -113,7 +111,7 @@
     }
     }
 
-    // ── Idle animation ────────────────────────────────────────────
+    
     let idleRAF, idleT = 0;
     const idleAnimate = () => {
     idleT += 0.008;
@@ -130,9 +128,7 @@
     idleRAF = null;
     };
 
-    // ── Woorden doorschuiven ──────────────────────────────────────
-    // Rij: word1 (groot) ← word2 ← word3 ← word4 (klein)
-    // Nieuw woord komt op word1, de rest schuift op
+    
     const wordEls = [
     document.querySelector('#word1'),
     document.querySelector('#word2'),
@@ -141,7 +137,7 @@
     ];
 
     const pushWord = (newWord) => {
-    // Animeer uit naar links
+    
     wordEls.forEach((el, i) => {
         el.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
         el.style.opacity = '0';
@@ -149,14 +145,14 @@
     });
 
     setTimeout(() => {
-        // Schuif woorden op: word4 = word3, word3 = word2, word2 = word1
+        
         wordEls[3].textContent = wordEls[2].textContent;
         wordEls[2].textContent = wordEls[1].textContent;
         wordEls[1].textContent = wordEls[0].textContent;
-        // Nieuw woord op word1
+        
         wordEls[0].textContent = newWord;
 
-        // Reset transform, animeer in
+        
         wordEls.forEach(el => {
         el.style.transform = 'translateX(20px)';
         el.style.opacity = '0';
@@ -169,7 +165,7 @@
             el.style.opacity = '';
             el.style.transform = '';
             });
-            // Reset inline opacity zodat CSS klassen weer werken
+            
             setTimeout(() => {
             wordEls.forEach(el => {
                 el.style.transition = '';
@@ -182,7 +178,7 @@
     }, 300);
     }
 
-    // ── QR helper ─────────────────────────────────────────────────
+    
     const makeQR = (el, size) => {
     const q = qrcode(4, 'L');
     q.addData(el._url);
@@ -190,7 +186,7 @@
     el.innerHTML = q.createImgTag(size);
     }
 
-    // ── Socket + SimplePeer ───────────────────────────────────────
+    
     let socket, simplePeer, remoteSocketId;
 
     const setDot = (id, cls) => {
@@ -240,29 +236,23 @@
     setDot('dot-webrtc', 'disconnected');
     };
 
-    // ── Full system reset ─────────────────────────────────────────
     const fullReset = () => {
-    // 1. Stuur force-disconnect naar de verbonden telefoon
     if (socket && remoteSocketId) {
         socket.emit('force-disconnect', remoteSocketId);
     }
 
-    // 2. Verbreek alles
     closeSimplePeer();
     if (socket) { socket.disconnect(); }
 
-    // 3. Reset state
     connected = false;
     remoteSocketId = null;
     stopIdle();
 
-    // 4. Verberg canvas, sidebar, statusbar
     document.querySelector('#canvas').classList.remove('visible');
     document.querySelector('#sidebar').classList.remove('visible');
     document.querySelector('#statusbar').classList.remove('visible');
     document.querySelector('#disconnect-overlay').classList.remove('visible');
 
-    // 5. Reset wacht-scherm en toon het opnieuw
     const waiting = document.querySelector('#waiting');
     waiting.classList.remove('fade-out', 'gone');
     document.querySelector('#wdot').classList.remove('on');
@@ -270,7 +260,6 @@
     document.querySelector('#waiting-url').textContent = '…';
     document.querySelector('#qr-waiting').innerHTML = '';
 
-    // 6. Nieuwe socket → nieuw ID → nieuwe QR
     socket = io.connect('/');
     initSocketEvents();
     }
@@ -288,12 +277,10 @@
     fullReset();
     });
 
-    // Klik buiten modal sluit hem
     document.querySelector('#confirm-modal').addEventListener('click', (e) => {
     if (e.target === e.currentTarget) e.currentTarget.classList.remove('visible');
     });
 
-    // ── Disconnect overlay ────────────────────────────────────────
     const showDisconnect = (reason) => {
     const overlay = document.querySelector('#disconnect-overlay');
     document.querySelector('#dc-title').textContent = reason === 'socket' ? 'Server verbroken' : 'Telefoon verbroken';
@@ -301,7 +288,6 @@
         ? 'De server is niet bereikbaar. Herstart de server en ververs de pagina.'
         : 'De telefoon heeft de verbinding verloren. Scan de QR-code opnieuw.';
 
-    // Toon QR opnieuw bij telefoon-disconnect
     const qrWrap = document.querySelector('#dc-qr-wrap');
     if (reason === 'phone') {
         const url = document.querySelector('#qr-url-text').textContent;

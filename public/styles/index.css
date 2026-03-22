@@ -31,7 +31,7 @@ body {
     overflow: hidden;
 }
 
-/* ── WAITING SCREEN ──────────────────────────── */
+
 #waiting {
     position: fixed;
     inset: 0;
@@ -160,7 +160,6 @@ body {
     box-shadow: 0 0 8px var(--accent);
 }
 
-/* ── CANVAS ─────────────────────────────────── */
 #canvas {
     position: fixed;
     inset: 0;
@@ -234,7 +233,6 @@ body {
     font-style: italic;
 }
 
-/* ── SIDEBAR ─────────────────────────────────── */
 #sidebar {
     position: fixed;
     right: 0;
@@ -298,7 +296,6 @@ body {
     will-change: width;
 }
 
-/* ── STATUS BAR ──────────────────────────────── */
 #statusbar {
     position: fixed;
     bottom: 0;
@@ -392,7 +389,6 @@ body {
     background: rgba(255, 68, 68, 0.05);
 }
 
-/* ── CONFIRM MODAL ───────────────────────────── */
 #confirm-modal {
     position: fixed;
     inset: 0;
@@ -486,7 +482,6 @@ body {
     background: #ff2222;
 }
 
-/* ── QR MODAL ────────────────────────────────── */
 #qr-modal {
     position: fixed;
     inset: 0;
@@ -524,7 +519,6 @@ body {
     text-align: center;
 }
 
-/* ── DISCONNECT OVERLAY ──────────────────────── */
 #disconnect-overlay {
     position: fixed;
     inset: 0;
