@@ -380,6 +380,27 @@
       font-family: monospace;
     }
 
+    #reset-btn {
+      background: none;
+      border: 1px solid var(--border);
+      color: #555;
+      font-size: 0.85rem;
+      width: 26px;
+      height: 26px;
+      border-radius: 4px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: border-color 0.2s, color 0.2s;
+      flex-shrink: 0;
+    }
+
+    #reset-btn:hover {
+      border-color: #ff4444;
+      color: #ff4444;
+    }
+
     /* ── QR MODAL ────────────────────────────────── */
     #qr-modal {
       position: fixed;
@@ -416,6 +437,99 @@
       word-break: break-all;
       max-width: 260px;
       text-align: center;
+    }
+
+    /* ── DISCONNECT OVERLAY ──────────────────────── */
+    #disconnect-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 500;
+      background: rgba(10, 10, 10, 0.92);
+      backdrop-filter: blur(8px);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 1.5rem;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.4s ease;
+    }
+
+    #disconnect-overlay.visible {
+      opacity: 1;
+      pointer-events: all;
+    }
+
+    .dc-icon {
+      font-size: 2.5rem;
+      line-height: 1;
+    }
+
+    .dc-title {
+      font-variation-settings: 'wght' 800, 'opsz' 48;
+      font-size: 2rem;
+      letter-spacing: -0.02em;
+      color: var(--fg);
+      text-align: center;
+    }
+
+    .dc-body {
+      font-size: 0.8rem;
+      color: #555;
+      text-align: center;
+      line-height: 1.7;
+    }
+
+    .dc-status {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      font-size: 0.62rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #555;
+    }
+
+    .dc-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #ff4444;
+      animation: dc-blink 1.2s ease-in-out infinite;
+    }
+
+    .dc-dot.reconnecting {
+      background: #ff9900;
+    }
+
+    .dc-dot.ok {
+      background: var(--accent);
+      animation: none;
+      box-shadow: 0 0 8px var(--accent);
+    }
+
+    @keyframes dc-blink {
+
+      0%,
+      100% {
+        opacity: 1;
+      }
+
+      50% {
+        opacity: 0.2;
+      }
+    }
+
+    .dc-qr-wrap {
+      background: #fff;
+      padding: 0.8rem;
+      border-radius: 4px;
+      display: none;
+    }
+
+    .dc-qr-wrap.visible {
+      display: block;
     }
   </style>
 </head>
@@ -503,6 +617,7 @@
       <span id="url-short">—</span>
       <div id="qr-small"></div>
     </div>
+    <button id="reset-btn" title="Disconnect — toon nieuwe QR">⏏</button>
   </div>
 
   <!-- ── QR MODAL ── -->
@@ -510,6 +625,20 @@
     <div id="qr-modal-inner" onclick="event.stopPropagation()">
       <div id="qr-big"></div>
       <p id="qr-url-text"></p>
+    </div>
+  </div>
+
+  <!-- ── DISCONNECT OVERLAY ── -->
+  <div id="disconnect-overlay">
+    <div class="dc-icon">⚡</div>
+    <div class="dc-title" id="dc-title">Verbinding verbroken</div>
+    <div class="dc-body" id="dc-body">De telefoon heeft de verbinding verloren.<br>Scan de QR-code opnieuw.</div>
+    <div class="dc-qr-wrap" id="dc-qr-wrap">
+      <div id="dc-qr"></div>
+    </div>
+    <div class="dc-status">
+      <div class="dc-dot" id="dc-dot"></div>
+      <span id="dc-status-text">Wacht op herverbinding…</span>
     </div>
   </div>
 
@@ -678,8 +807,13 @@
 
         simplePeer.on('connect', () => {
           setDot('dot-webrtc', 'connected');
-          transitionToConnected();
-          idleAnimate(); // idle speelt op canvas tot eerste data
+          if (!connected) {
+            transitionToConnected();
+          } else {
+            hideDisconnect();
+            stopIdle();
+          }
+          idleAnimate();
         });
 
         simplePeer.on('data', data => {
@@ -691,6 +825,7 @@
         simplePeer.on('close', () => {
           setDot('dot-webrtc', 'disconnected');
           simplePeer = null;
+          if (connected) showDisconnect('phone');
         });
       }
 
@@ -699,50 +834,139 @@
         setDot('dot-webrtc', 'disconnected');
       }
 
-      socket = io.connect('/');
+      // ── Full system reset ─────────────────────────────────────────
+      function fullReset() {
+        // 1. Stuur force-disconnect naar de verbonden telefoon
+        if (socket && remoteSocketId) {
+          socket.emit('force-disconnect', remoteSocketId);
+        }
 
-      socket.on('connect', () => {
-        setDot('dot-socket', 'connected');
-        setWaitingStatus('Socket verbonden — scan de QR-code', true);
-
-        const url = new URL(`/controller.html?id=${socket.id}`, window.location).href.replace('http://', 'https://');
-
-        document.getElementById('waiting-url').textContent = url;
-        document.getElementById('url-short').textContent = socket.id.substring(0, 8) + '…';
-        document.getElementById('qr-url-text').textContent = url;
-
-        const qw = document.getElementById('qr-waiting');
-        const qs = document.getElementById('qr-small');
-        const qb = document.getElementById('qr-big');
-        [qw, qs, qb].forEach(el => el._url = url);
-
-        const qWait = qrcode(4, 'L'); qWait.addData(url); qWait.make();
-        qw.innerHTML = qWait.createImgTag(5);
-
-        const qSmall = qrcode(4, 'L'); qSmall.addData(url); qSmall.make();
-        qs.innerHTML = qSmall.createImgTag(1);
-
-        const qBig = qrcode(4, 'L'); qBig.addData(url); qBig.make();
-        qb.innerHTML = qBig.createImgTag(6);
-      });
-
-      socket.on('signal', (peerId, signal, fromId) => {
-        remoteSocketId = fromId;
-        setWaitingStatus('Telefoon gevonden — verbinden…', true);
-        if (!simplePeer) setupSimplePeer();
-        try { simplePeer.signal(signal); } catch (e) { console.error(e); }
-      });
-
-      socket.on('update', data => { state.x = data.x; state.y = data.y; applyState(); });
-
-      socket.on('client-disconnect', client => {
-        if (client && client.id === remoteSocketId) closeSimplePeer();
-      });
-
-      socket.on('disconnect', () => {
-        setDot('dot-socket', 'disconnected');
+        // 2. Verbreek alles
         closeSimplePeer();
+        if (socket) { socket.disconnect(); }
+
+        // 3. Reset state
+        connected = false;
+        remoteSocketId = null;
+        stopIdle();
+
+        // 4. Verberg canvas, sidebar, statusbar
+        document.getElementById('canvas').classList.remove('visible');
+        document.getElementById('sidebar').classList.remove('visible');
+        document.getElementById('statusbar').classList.remove('visible');
+        document.getElementById('disconnect-overlay').classList.remove('visible');
+
+        // 5. Reset wacht-scherm en toon het opnieuw
+        const waiting = document.getElementById('waiting');
+        waiting.classList.remove('fade-out', 'gone');
+        document.getElementById('wdot').classList.remove('on');
+        document.getElementById('wstatus-text').textContent = 'Verbinden met server…';
+        document.getElementById('waiting-url').textContent = '…';
+        document.getElementById('qr-waiting').innerHTML = '';
+
+        // 6. Nieuwe socket → nieuw ID → nieuwe QR
+        socket = io.connect('/');
+        initSocketEvents();
+      }
+
+      document.getElementById('reset-btn').addEventListener('click', () => {
+        if (confirm('Verbinding verbreken en QR opnieuw tonen?')) fullReset();
       });
+
+      // ── Disconnect overlay ────────────────────────────────────────
+      function showDisconnect(reason) {
+        const overlay = document.getElementById('disconnect-overlay');
+        document.getElementById('dc-title').textContent = reason === 'socket' ? 'Server verbroken' : 'Telefoon verbroken';
+        document.getElementById('dc-body').textContent = reason === 'socket'
+          ? 'De server is niet bereikbaar. Herstart de server en ververs de pagina.'
+          : 'De telefoon heeft de verbinding verloren. Scan de QR-code opnieuw.';
+
+        // Toon QR opnieuw bij telefoon-disconnect
+        const qrWrap = document.getElementById('dc-qr-wrap');
+        if (reason === 'phone') {
+          const url = document.getElementById('qr-url-text').textContent;
+          if (url) {
+            const q = qrcode(4, 'L'); q.addData(url); q.make();
+            document.getElementById('dc-qr').innerHTML = q.createImgTag(4);
+            qrWrap.classList.add('visible');
+          }
+        } else {
+          qrWrap.classList.remove('visible');
+        }
+
+        document.getElementById('dc-dot').className = 'dc-dot';
+        document.getElementById('dc-status-text').textContent = 'Wacht op herverbinding…';
+        overlay.classList.add('visible');
+        idleAnimate();
+      }
+
+      function hideDisconnect() {
+        const overlay = document.getElementById('disconnect-overlay');
+        const dot = document.getElementById('dc-dot');
+        dot.className = 'dc-dot ok';
+        document.getElementById('dc-status-text').textContent = 'Verbonden!';
+        setTimeout(() => overlay.classList.remove('visible'), 900);
+      }
+
+      function initSocketEvents() {
+        socket.on('connect', () => {
+          setDot('dot-socket', 'connected');
+          setWaitingStatus('Socket verbonden — scan de QR-code', true);
+
+          const url = new URL(`/controller.html?id=${socket.id}`, window.location).href.replace('http://', 'https://');
+
+          document.getElementById('waiting-url').textContent = url;
+          document.getElementById('url-short').textContent = socket.id.substring(0, 8) + '…';
+          document.getElementById('qr-url-text').textContent = url;
+
+          const qw = document.getElementById('qr-waiting');
+          const qs = document.getElementById('qr-small');
+          const qb = document.getElementById('qr-big');
+
+          const qWait = qrcode(4, 'L'); qWait.addData(url); qWait.make();
+          qw.innerHTML = qWait.createImgTag(5);
+
+          const qSmall = qrcode(4, 'L'); qSmall.addData(url); qSmall.make();
+          qs.innerHTML = qSmall.createImgTag(1);
+
+          const qBig = qrcode(4, 'L'); qBig.addData(url); qBig.make();
+          qb.innerHTML = qBig.createImgTag(6);
+        });
+
+        socket.on('signal', (peerId, signal, fromId) => {
+          remoteSocketId = fromId;
+          setWaitingStatus('Telefoon gevonden — verbinden…', true);
+          if (connected) {
+            document.getElementById('dc-dot').className = 'dc-dot reconnecting';
+            document.getElementById('dc-status-text').textContent = 'Herverbinden…';
+          }
+          if (!simplePeer) setupSimplePeer();
+          try { simplePeer.signal(signal); } catch (e) { console.error(e); }
+        });
+
+        socket.on('update', data => { state.x = data.x; state.y = data.y; applyState(); });
+
+        socket.on('client-disconnect', client => {
+          if (client && client.id === remoteSocketId) {
+            closeSimplePeer();
+            if (connected) showDisconnect('phone');
+          }
+        });
+
+        socket.on('disconnect', () => {
+          setDot('dot-socket', 'disconnected');
+          closeSimplePeer();
+          if (connected) showDisconnect('socket');
+        });
+
+        socket.on('reconnect', () => {
+          setDot('dot-socket', 'connected');
+          hideDisconnect();
+        });
+      }
+
+      socket = io.connect('/');
+      initSocketEvents();
     }
   </script>
 </body>

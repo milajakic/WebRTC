@@ -45,6 +45,12 @@ io.on('connection', socket => {
     io.to(peerId).emit('signal', peerId, signal, socket.id);
   });
 
+  socket.on('force-disconnect', (peerId) => {
+    if (clients[peerId]) {
+      io.to(peerId).emit('force-disconnect');
+    }
+  });
+
   socket.on('update', (targetSocketId, data) => {
     if (clients[targetSocketId]) {
       io.to(targetSocketId).emit('update', data);

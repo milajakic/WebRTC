@@ -554,6 +554,107 @@
         #italic-indicator.on span {
             color: var(--accent);
         }
+
+        /* ── DISCONNECT BANNER ───────────────────────── */
+        #dc-banner {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            z-index: 300;
+            background: #1a0000;
+            border-top: 1px solid #ff4444;
+            padding: 0.9rem 1.2rem;
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            transform: translateY(100%);
+            transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        #dc-banner.visible {
+            transform: translateY(0);
+        }
+
+        .dc-banner-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: #ff4444;
+            flex-shrink: 0;
+            animation: dc-blink 1.2s ease-in-out infinite;
+        }
+
+        .dc-banner-dot.reconnecting {
+            background: #ff9900;
+        }
+
+        @keyframes dc-blink {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.25;
+            }
+        }
+
+        .dc-banner-text {
+            flex: 1;
+            font-size: 0.7rem;
+            letter-spacing: 0.06em;
+            color: #ff7777;
+            line-height: 1.4;
+        }
+
+        .dc-banner-text strong {
+            display: block;
+            color: #ffaaaa;
+            font-variation-settings: 'wght' 700, 'opsz' 12;
+        }
+
+        /* ── FORCE DISCONNECT SCHERM ─────────────────── */
+        #force-dc {
+            position: fixed;
+            inset: 0;
+            z-index: 400;
+            background: var(--bg);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 1.5rem;
+            padding: 2rem;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.4s ease;
+        }
+
+        #force-dc.visible {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .fdc-icon {
+            font-size: 3rem;
+        }
+
+        .fdc-title {
+            font-variation-settings: 'wght' 800, 'opsz' 48;
+            font-size: 2rem;
+            letter-spacing: -0.02em;
+            text-align: center;
+            line-height: 1.1;
+        }
+
+        .fdc-body {
+            font-size: 0.8rem;
+            color: #555;
+            text-align: center;
+            line-height: 1.7;
+        }
     </style>
 </head>
 
@@ -679,6 +780,22 @@
                 <span id="italic-val">uit</span>
             </div>
 
+        </div>
+    </div>
+
+    <!-- ── FORCE DISCONNECT ── -->
+    <div id="force-dc">
+        <div class="fdc-icon">Disconnect ⏏</div>
+        <div class="fdc-title">Sessie<br>beëindigd</div>
+        <div class="fdc-body">De desktop heeft de verbinding verbroken.<br>Scan de QR-code opnieuw om te starten.</div>
+    </div>
+
+    <!-- ── DISCONNECT BANNER ── -->
+    <div id="dc-banner">
+        <div class="dc-banner-dot" id="dc-banner-dot"></div>
+        <div class="dc-banner-text">
+            <strong id="dc-banner-title">Verbinding verbroken</strong>
+            <span id="dc-banner-body">Herverbinden met desktop…</span>
         </div>
     </div>
 
@@ -925,6 +1042,18 @@
                 $(id).classList.toggle('connected', on);
             }
 
+            // ── Disconnect banner ─────────────────────────────────────────
+            function showDCBanner(title, body, blinking) {
+                $('dc-banner-title').textContent = title;
+                $('dc-banner-body').textContent = body;
+                $('dc-banner-dot').className = 'dc-banner-dot' + (blinking === 'reconnecting' ? ' reconnecting' : '');
+                $('dc-banner').classList.add('visible');
+            }
+
+            function hideDCBanner() {
+                $('dc-banner').classList.remove('visible');
+            }
+
             function setupSimplePeer() {
                 simplePeer = new SimplePeer({
                     initiator: true,
@@ -941,6 +1070,7 @@
 
                 simplePeer.on('connect', () => {
                     setPill('pill-webrtc', true);
+                    hideDCBanner();
                     onWebRTCConnected();
                     startRAF();
                 });
@@ -954,7 +1084,11 @@
                 });
 
                 simplePeer.on('error', err => console.error('[CTRL]', err));
-                simplePeer.on('close', () => { setPill('pill-webrtc', false); simplePeer = null; });
+                simplePeer.on('close', () => {
+                    setPill('pill-webrtc', false);
+                    simplePeer = null;
+                    showDCBanner('Verbinding verbroken', 'Herverbinden met desktop…', 'reconnecting');
+                });
             }
 
             function getParam(name) {
@@ -980,9 +1114,25 @@
                     try { simplePeer.signal(signal); } catch (e) { console.error(e); }
                 });
 
+                socket.on('force-disconnect', () => {
+                    // Desktop heeft sessie beëindigd — toon eindscherm
+                    if (simplePeer) { simplePeer.destroy(); simplePeer = null; }
+                    setPill('pill-webrtc', false);
+                    hideDCBanner();
+                    document.getElementById('force-dc').classList.add('visible');
+                    // Verberg app
+                    document.getElementById('app').classList.remove('visible');
+                });
+
                 socket.on('disconnect', () => {
                     setPill('pill-socket', false);
                     setPill('pill-webrtc', false);
+                    showDCBanner('Server verbroken', 'Ververs de pagina als dit aanhoudt.', '');
+                });
+
+                socket.on('reconnect', () => {
+                    setPill('pill-socket', true);
+                    hideDCBanner();
                 });
             }
         }
