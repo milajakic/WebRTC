@@ -10,6 +10,7 @@
   <link
     href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,100..900;1,9..144,100..900&display=swap"
     rel="stylesheet">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
   <style>
     :root {
       --bg: #0a0a0a;
@@ -361,7 +362,6 @@
     }
 
     #qr-wrap {
-      margin-left: auto;
       display: flex;
       align-items: center;
       gap: 0.7rem;
@@ -381,24 +381,123 @@
     }
 
     #reset-btn {
-      background: none;
-      border: 1px solid var(--border);
-      color: #555;
-      font-size: 0.85rem;
-      width: 26px;
-      height: 26px;
-      border-radius: 4px;
-      cursor: pointer;
+      margin-left: auto;
       display: flex;
       align-items: center;
-      justify-content: center;
-      transition: border-color 0.2s, color 0.2s;
+      gap: 0.35rem;
+      background: none;
+      border: 1px solid #2a2a2a;
+      color: #555;
+      padding: 0.3rem 0.7rem;
+      border-radius: 4px;
+      cursor: pointer;
+      font-family: 'Fraunces', serif;
+      font-size: 0.58rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      transition: border-color 0.2s, color 0.2s, background 0.2s;
       flex-shrink: 0;
+      white-space: nowrap;
     }
 
     #reset-btn:hover {
       border-color: #ff4444;
       color: #ff4444;
+      background: rgba(255, 68, 68, 0.05);
+    }
+
+    /* ── CONFIRM MODAL ───────────────────────────── */
+    #confirm-modal {
+      position: fixed;
+      inset: 0;
+      z-index: 600;
+      background: rgba(0, 0, 0, 0.88);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease;
+    }
+
+    #confirm-modal.visible {
+      opacity: 1;
+      pointer-events: all;
+    }
+
+    #confirm-inner {
+      background: #161616;
+      border: 1px solid #2a2a2a;
+      border-radius: 8px;
+      padding: 2rem 1.8rem;
+      max-width: 320px;
+      width: 90%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1rem;
+      text-align: center;
+    }
+
+    .confirm-icon {
+      color: #ff4444;
+    }
+
+    .confirm-title {
+      font-variation-settings: 'wght' 700, 'opsz' 24;
+      font-size: 1.1rem;
+      letter-spacing: -0.01em;
+    }
+
+    .confirm-body {
+      font-size: 0.75rem;
+      color: #666;
+      line-height: 1.6;
+    }
+
+    .confirm-actions {
+      display: flex;
+      gap: 0.6rem;
+      width: 100%;
+      margin-top: 0.3rem;
+    }
+
+    .confirm-cancel {
+      flex: 1;
+      padding: 0.7rem;
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      color: #666;
+      font-family: 'Fraunces', serif;
+      font-size: 0.75rem;
+      letter-spacing: 0.06em;
+      cursor: pointer;
+      transition: border-color 0.2s, color 0.2s;
+    }
+
+    .confirm-cancel:hover {
+      border-color: #555;
+      color: var(--fg);
+    }
+
+    .confirm-ok {
+      flex: 1;
+      padding: 0.7rem;
+      background: #ff4444;
+      border: none;
+      border-radius: 4px;
+      color: #fff;
+      font-family: 'Fraunces', serif;
+      font-variation-settings: 'wght' 700, 'opsz' 16;
+      font-size: 0.75rem;
+      letter-spacing: 0.06em;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .confirm-ok:hover {
+      background: #ff2222;
     }
 
     /* ── QR MODAL ────────────────────────────────── */
@@ -617,7 +716,26 @@
       <span id="url-short">—</span>
       <div id="qr-small"></div>
     </div>
-    <button id="reset-btn" title="Disconnect — toon nieuwe QR">⏏</button>
+    <button id="reset-btn">
+      <span class="material-icons" style="font-size:0.85rem;line-height:1;">link_off</span>
+      Disconnect
+    </button>
+  </div>
+
+  <!-- ── CONFIRM MODAL ── -->
+  <div id="confirm-modal">
+    <div id="confirm-inner">
+      <span class="material-icons confirm-icon" style="font-size:2rem;">link_off</span>
+      <div class="confirm-title">Verbinding verbreken?</div>
+      <div class="confirm-body">
+        De huidige sessie wordt beëindigd en de telefoon krijgt een melding.<br>
+        Er wordt een nieuwe QR-code gegenereerd.
+      </div>
+      <div class="confirm-actions">
+        <button class="confirm-cancel" id="confirm-cancel">Annuleren</button>
+        <button class="confirm-ok" id="confirm-ok">Verbreken</button>
+      </div>
+    </div>
   </div>
 
   <!-- ── QR MODAL ── -->
@@ -630,7 +748,7 @@
 
   <!-- ── DISCONNECT OVERLAY ── -->
   <div id="disconnect-overlay">
-    <div class="dc-icon">⚡</div>
+    <div class="dc-icon"><span class="material-icons" style="font-size:2.5rem;color:#555;">link_off</span></div>
     <div class="dc-title" id="dc-title">Verbinding verbroken</div>
     <div class="dc-body" id="dc-body">De telefoon heeft de verbinding verloren.<br>Scan de QR-code opnieuw.</div>
     <div class="dc-qr-wrap" id="dc-qr-wrap">
@@ -757,6 +875,10 @@
           root.style.setProperty('--fg', m.fg);
           root.style.setProperty('--bg', m.bg);
         }
+
+        if (msg.type === 'word') {
+          pushWord(msg.word);
+        }
       }
 
       // ── Idle animation ────────────────────────────────────────────
@@ -774,6 +896,58 @@
       function stopIdle() {
         if (idleRAF) cancelAnimationFrame(idleRAF);
         idleRAF = null;
+      }
+
+      // ── Woorden doorschuiven ──────────────────────────────────────
+      // Rij: word1 (groot) ← word2 ← word3 ← word4 (klein)
+      // Nieuw woord komt op word1, de rest schuift op
+      const wordEls = [
+        document.getElementById('word1'),
+        document.getElementById('word2'),
+        document.getElementById('word3'),
+        document.getElementById('word4'),
+      ];
+
+      function pushWord(newWord) {
+        // Animeer uit naar links
+        wordEls.forEach((el, i) => {
+          el.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+          el.style.opacity = '0';
+          el.style.transform = 'translateX(-30px)';
+        });
+
+        setTimeout(() => {
+          // Schuif woorden op: word4 = word3, word3 = word2, word2 = word1
+          wordEls[3].textContent = wordEls[2].textContent;
+          wordEls[2].textContent = wordEls[1].textContent;
+          wordEls[1].textContent = wordEls[0].textContent;
+          // Nieuw woord op word1
+          wordEls[0].textContent = newWord;
+
+          // Reset transform, animeer in
+          wordEls.forEach(el => {
+            el.style.transform = 'translateX(20px)';
+            el.style.opacity = '0';
+          });
+
+          requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+              wordEls.forEach(el => {
+                el.style.transition = 'opacity 0.4s ease, transform 0.4s ease';
+                el.style.opacity = '';
+                el.style.transform = '';
+              });
+              // Reset inline opacity zodat CSS klassen weer werken
+              setTimeout(() => {
+                wordEls.forEach(el => {
+                  el.style.transition = '';
+                  el.style.opacity = '';
+                  el.style.transform = '';
+                });
+              }, 450);
+            });
+          });
+        }, 300);
       }
 
       // ── QR helper ─────────────────────────────────────────────────
@@ -870,7 +1044,21 @@
       }
 
       document.getElementById('reset-btn').addEventListener('click', () => {
-        if (confirm('Verbinding verbreken en QR opnieuw tonen?')) fullReset();
+        document.getElementById('confirm-modal').classList.add('visible');
+      });
+
+      document.getElementById('confirm-cancel').addEventListener('click', () => {
+        document.getElementById('confirm-modal').classList.remove('visible');
+      });
+
+      document.getElementById('confirm-ok').addEventListener('click', () => {
+        document.getElementById('confirm-modal').classList.remove('visible');
+        fullReset();
+      });
+
+      // Klik buiten modal sluit hem
+      document.getElementById('confirm-modal').addEventListener('click', function (e) {
+        if (e.target === this) this.classList.remove('visible');
       });
 
       // ── Disconnect overlay ────────────────────────────────────────

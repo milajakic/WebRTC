@@ -10,6 +10,7 @@
     <link
         href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,100..900;1,9..144,100..900&display=swap"
         rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <style>
         :root {
             --bg: #0a0a0a;
@@ -18,6 +19,8 @@
             --muted: #1a1a1a;
             --border: #242424;
             --panel: #111;
+            --tab-h: 56px;
+            --header-h: 48px;
         }
 
         *,
@@ -28,8 +31,7 @@
             padding: 0;
         }
 
-        html,
-        body {
+        html {
             height: 100%;
         }
 
@@ -42,10 +44,11 @@
             flex-direction: column;
             overflow: hidden;
             overscroll-behavior: none;
-            touch-action: none;
         }
 
-        /* ── ONBOARDING ──────────────────────────────── */
+        /* ══════════════════════════════════════════════
+       ONBOARDING
+    ══════════════════════════════════════════════ */
         #onboarding {
             position: fixed;
             inset: 0;
@@ -66,7 +69,6 @@
             display: none;
         }
 
-        /* Steps */
         .step {
             position: absolute;
             inset: 0;
@@ -75,10 +77,10 @@
             align-items: center;
             justify-content: center;
             padding: 3rem 2rem;
-            gap: 1.8rem;
+            gap: 1.6rem;
             opacity: 0;
             transform: translateX(40px);
-            transition: opacity 0.45s ease, transform 0.45s ease;
+            transition: opacity 0.4s ease, transform 0.4s ease;
             pointer-events: none;
         }
 
@@ -101,13 +103,13 @@
         }
 
         .step-icon {
-            font-size: 3.5rem;
+            font-size: 3rem;
             line-height: 1;
         }
 
         .step-title {
             font-variation-settings: 'wght' 800, 'opsz' 48;
-            font-size: clamp(1.8rem, 7vw, 2.8rem);
+            font-size: clamp(1.8rem, 7vw, 2.6rem);
             letter-spacing: -0.02em;
             text-align: center;
             line-height: 1.1;
@@ -118,7 +120,7 @@
         }
 
         .step-body {
-            font-size: 0.85rem;
+            font-size: 0.82rem;
             color: #666;
             text-align: center;
             line-height: 1.7;
@@ -126,7 +128,7 @@
         }
 
         .step-btn {
-            margin-top: 0.5rem;
+            margin-top: 0.3rem;
             padding: 0.9rem 2.5rem;
             background: var(--accent);
             color: #fff;
@@ -147,7 +149,7 @@
         .step-btn.secondary {
             background: transparent;
             border: 1px solid var(--border);
-            color: #666;
+            color: #555;
             padding: 0.7rem 2rem;
         }
 
@@ -155,7 +157,7 @@
             display: flex;
             align-items: center;
             gap: 0.6rem;
-            font-size: 0.65rem;
+            font-size: 0.62rem;
             letter-spacing: 0.12em;
             text-transform: uppercase;
             color: #555;
@@ -174,7 +176,6 @@
             box-shadow: 0 0 8px var(--accent);
         }
 
-        /* Dots progress indicator */
         .step-dots {
             display: flex;
             gap: 0.5rem;
@@ -195,14 +196,18 @@
             transform: scale(1.3);
         }
 
-        /* ── MAIN APP ────────────────────────────────── */
+        /* ══════════════════════════════════════════════
+       APP SHELL
+    ══════════════════════════════════════════════ */
         #app {
             flex: 1;
             display: flex;
             flex-direction: column;
             opacity: 0;
-            transition: opacity 0.6s ease;
             pointer-events: none;
+            transition: opacity 0.5s ease;
+            /* Belangrijk: body overflow hidden, app vult alles */
+            min-height: 0;
         }
 
         #app.visible {
@@ -212,8 +217,8 @@
 
         /* Header */
         header {
-            flex: 0 0 auto;
-            padding: 0.9rem 1.2rem 0.6rem;
+            flex: 0 0 var(--header-h);
+            padding: 0 1.2rem;
             display: flex;
             align-items: center;
             justify-content: space-between;
@@ -263,16 +268,105 @@
             background: currentColor;
         }
 
-        /* Touchpad */
+        /* ── TAB BAR ─────────────────────────────────── */
+        #tab-bar {
+            flex: 0 0 var(--tab-h);
+            display: flex;
+            border-top: 1px solid var(--border);
+            background: var(--panel);
+            order: 99;
+            /* zet tabs onderaan */
+        }
+
+        .tab-btn {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 0.2rem;
+            background: none;
+            border: none;
+            color: #444;
+            cursor: pointer;
+            font-family: 'Fraunces', serif;
+            font-size: 0.5rem;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            transition: color 0.2s;
+            padding: 0.5rem 0;
+            position: relative;
+        }
+
+        .tab-btn.active {
+            color: var(--accent);
+        }
+
+        .tab-btn.active::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 20%;
+            right: 20%;
+            height: 2px;
+            background: var(--accent);
+            border-radius: 0 0 2px 2px;
+        }
+
+        .material-icons {
+            font-size: 1.3rem;
+            line-height: 1;
+            vertical-align: middle;
+            user-select: none;
+        }
+
+        .step-icon .material-icons {
+            font-size: 2.8rem;
+            color: var(--accent);
+        }
+
+        .fdc-icon .material-icons {
+            font-size: 2.8rem;
+            color: #555;
+        }
+
+        /* ── TAB PANELS ──────────────────────────────── */
+        #tab-content {
+            flex: 1;
+            min-height: 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .tab-panel {
+            position: absolute;
+            inset: 0;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            opacity: 0;
+            pointer-events: none;
+            transform: translateX(20px);
+            transition: opacity 0.25s ease, transform 0.25s ease;
+            padding-bottom: 1rem;
+        }
+
+        .tab-panel.active {
+            opacity: 1;
+            pointer-events: all;
+            transform: translateX(0);
+        }
+
+        /* ── TOUCHPAD PANEL ──────────────────────────── */
         #touchpad {
             position: relative;
-            flex: 0 0 auto;
-            height: 36vh;
+            height: calc(100% - 1.6rem);
             margin: 0.8rem;
             border: 1px solid var(--border);
             border-radius: 8px;
             background: var(--panel);
             overflow: hidden;
+            touch-action: none;
+            /* alleen hier touch blokkeren */
         }
 
         #touchpad::before {
@@ -299,66 +393,263 @@
 
         .tp-label {
             position: absolute;
-            font-size: 0.52rem;
+            font-size: 0.55rem;
             color: #333;
             letter-spacing: 0.08em;
             pointer-events: none;
+            text-transform: uppercase;
         }
 
         .tp-label.tl {
-            top: 0.6rem;
-            left: 0.7rem;
-        }
-
-        .tp-label.br {
-            bottom: 0.6rem;
-            right: 0.7rem;
+            top: 0.7rem;
+            left: 0.8rem;
         }
 
         .tp-label.bl {
-            bottom: 0.6rem;
-            left: 0.7rem;
+            bottom: 0.7rem;
+            left: 0.8rem;
+        }
+
+        .tp-label.br {
+            bottom: 0.7rem;
+            right: 0.8rem;
         }
 
         .tp-label.tr {
-            top: 0.6rem;
-            right: 0.7rem;
+            top: 0.7rem;
+            right: 0.8rem;
+            writing-mode: vertical-lr;
         }
 
         #touch-cursor {
             position: absolute;
-            width: 22px;
-            height: 22px;
+            width: 28px;
+            height: 28px;
             border: 2px solid var(--accent);
             border-radius: 50%;
             transform: translate(-50%, -50%);
             left: 50%;
             top: 50%;
             pointer-events: none;
-            box-shadow: 0 0 12px rgba(244, 70, 17, 0.35);
+            box-shadow: 0 0 16px rgba(244, 70, 17, 0.4);
         }
 
         #touch-cursor::after {
             content: '';
             position: absolute;
-            inset: 4px;
+            inset: 5px;
             border-radius: 50%;
             background: var(--accent);
-            opacity: 0.55;
+            opacity: 0.5;
         }
 
-        /* Controls */
-        #controls {
-            flex: 1 1 auto;
-            overflow-y: auto;
-            padding: 0 0.8rem 1rem;
+        #touchpad-blocked {
+            position: absolute;
+            inset: 0;
+            background: rgba(10, 10, 10, 0.85);
             display: flex;
             flex-direction: column;
+            align-items: center;
+            justify-content: center;
             gap: 0.6rem;
-            -webkit-overflow-scrolling: touch;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+            z-index: 10;
+            border-radius: 8px;
+        }
+
+        #touchpad-blocked.visible {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .tp-blocked-icon {
+            color: #444;
+        }
+
+        .tp-blocked-text {
+            font-size: 0.7rem;
+            letter-spacing: 0.08em;
+            color: #444;
+            text-align: center;
+            line-height: 1.6;
+        }
+
+        .tp-blocked-link {
+            font-size: 0.62rem;
+            color: var(--accent);
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            text-decoration: underline;
+            cursor: pointer;
+            background: none;
+            border: none;
+            font-family: 'Fraunces', serif;
+        }
+
+        /* ── GYRO PANEL ──────────────────────────────── */
+        #panel-gyro {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 1.2rem;
+            padding: 1.5rem 1.2rem;
+            min-height: 100%;
+        }
+
+        .gyro-ball-container {
+            width: 100%;
+            max-width: 280px;
+            aspect-ratio: 1;
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            position: relative;
+            overflow: hidden;
+            touch-action: none;
+        }
+
+        /* Grid lines in gyro viz */
+        .gyro-ball-container::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image:
+                linear-gradient(var(--border) 1px, transparent 1px),
+                linear-gradient(90deg, var(--border) 1px, transparent 1px);
+            background-size: 33.33% 33.33%;
+        }
+
+        #gyro-ball-big {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: var(--accent);
+            position: absolute;
+            transform: translate(-50%, -50%);
+            left: 50%;
+            top: 50%;
+            box-shadow: 0 0 16px rgba(244, 70, 17, 0.6);
+            transition: left 0.05s linear, top 0.05s linear;
+            z-index: 1;
+        }
+
+        .gyro-axis-labels {
+            width: 100%;
+            max-width: 280px;
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.6rem;
+            color: #444;
+            letter-spacing: 0.08em;
+        }
+
+        .gyro-readings {
+            width: 100%;
+            max-width: 280px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.5rem;
+        }
+
+        .gyro-reading {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 0.6rem 0.8rem;
+        }
+
+        .gyro-reading-label {
+            font-size: 0.55rem;
+            color: #444;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+        }
+
+        .gyro-reading-val {
+            font-size: 1rem;
+            color: var(--accent);
+            font-variant-numeric: tabular-nums;
+            margin-top: 0.2rem;
+        }
+
+        #gyro-toggle-big {
+            width: 100%;
+            max-width: 280px;
+            padding: 0.9rem;
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            color: #555;
+            font-family: 'Fraunces', serif;
+            font-size: 0.75rem;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            cursor: pointer;
+            text-align: center;
+            transition: border-color 0.2s, color 0.2s, background 0.2s;
+        }
+
+        #gyro-toggle-big.active {
+            border-color: var(--accent);
+            color: var(--accent);
+            background: rgba(244, 70, 17, 0.05);
+        }
+
+        .gyro-hint {
+            font-size: 0.65rem;
+            color: #444;
+            text-align: center;
+            line-height: 1.6;
+            max-width: 240px;
+        }
+
+        .shake-indicator {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            font-size: 0.62rem;
+            color: #444;
+            letter-spacing: 0.08em;
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 0.6rem 1rem;
+            width: 100%;
+            max-width: 280px;
+            transition: border-color 0.2s, color 0.2s;
+        }
+
+        .shake-indicator.shook {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .shake-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: #2a2a2a;
+            transition: background 0.2s;
+        }
+
+        .shake-indicator.shook .shake-dot {
+            background: var(--accent);
+        }
+
+        /* ── SETTINGS PANEL ──────────────────────────── */
+        .settings-section {
+            padding: 1rem 1rem 0;
+            font-size: 0.58rem;
+            letter-spacing: 0.13em;
+            text-transform: uppercase;
+            color: #3a3a3a;
         }
 
         .ctrl-row {
+            margin: 0.5rem 1rem 0;
             background: var(--panel);
             border: 1px solid var(--border);
             border-radius: 6px;
@@ -383,116 +674,40 @@
             font-size: 0.72rem;
             color: var(--accent);
             font-variant-numeric: tabular-nums;
-            font-variation-settings: 'wght' 700, 'opsz' 10;
         }
 
         input[type="range"] {
             -webkit-appearance: none;
             appearance: none;
             width: 100%;
-            height: 3px;
+            height: 4px;
             background: var(--border);
             border-radius: 2px;
             outline: none;
+            touch-action: none;
+            /* voor iOS slider */
         }
 
         input[type="range"]::-webkit-slider-thumb {
             -webkit-appearance: none;
-            width: 18px;
-            height: 18px;
+            width: 22px;
+            height: 22px;
             border-radius: 50%;
             background: var(--accent);
             cursor: pointer;
             box-shadow: 0 0 6px rgba(244, 70, 17, 0.4);
         }
 
-        /* Gyro */
-        .section-label {
-            font-size: 0.56rem;
-            letter-spacing: 0.13em;
-            text-transform: uppercase;
-            color: #3a3a3a;
-            padding: 0.2rem 0.8rem 0;
-        }
-
-        .gyro-viz {
-            position: relative;
-            height: 48px;
-            background: var(--panel);
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            margin: 0 0.8rem;
-            overflow: hidden;
-        }
-
-        .gyro-viz-label {
-            position: absolute;
-            inset: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.52rem;
-            color: #2a2a2a;
-            letter-spacing: 0.1em;
-            pointer-events: none;
-        }
-
-        #gyro-ball {
-            width: 14px;
-            height: 14px;
-            border-radius: 50%;
-            background: var(--accent);
-            position: absolute;
-            transform: translate(-50%, -50%);
-            left: 50%;
-            top: 50%;
-            box-shadow: 0 0 8px rgba(244, 70, 17, 0.5);
-            transition: left 0.05s, top 0.05s;
-        }
-
-        .gyro-row {
-            padding: 0 0.8rem;
-        }
-
-        .gyro-toggle {
-            width: 100%;
-            padding: 0.75rem;
-            background: var(--panel);
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            color: #555;
-            font-family: 'Fraunces', serif;
-            font-size: 0.68rem;
-            letter-spacing: 0.1em;
-            text-transform: uppercase;
-            cursor: pointer;
-            transition: border-color 0.2s, color 0.2s;
-            text-align: center;
-        }
-
-        .gyro-toggle.active {
-            border-color: var(--accent);
-            color: var(--accent);
-        }
-
-        #gyro-debug {
-            padding: 0.2rem 0.8rem;
-            font-size: 0.62rem;
-            font-family: monospace;
-            color: var(--accent);
-            min-height: 1.2rem;
-        }
-
-        /* Color strip */
         .color-strip {
             display: flex;
             gap: 0.5rem;
-            padding: 0 0.8rem 0.5rem;
+            margin: 0.5rem 1rem 0;
+            padding: 0;
         }
 
         .color-btn {
             flex: 1;
-            height: 30px;
+            height: 36px;
             border-radius: 4px;
             border: 1px solid var(--border);
             cursor: pointer;
@@ -528,94 +743,100 @@
             background: linear-gradient(135deg, #00061a 50%, #88ccff 50%);
         }
 
-        /* Italic indicator */
         #italic-indicator {
-            margin: 0 0.8rem 0.8rem;
-            padding: 0.5rem 0.8rem;
+            margin: 0.5rem 1rem 0;
+            padding: 0.6rem 0.9rem;
             background: var(--panel);
             border: 1px solid var(--border);
             border-radius: 6px;
-            font-size: 0.62rem;
+            font-size: 0.65rem;
             color: #444;
-            letter-spacing: 0.08em;
             display: flex;
             justify-content: space-between;
             align-items: center;
-        }
-
-        #italic-indicator span {
-            color: #333;
         }
 
         #italic-indicator.on {
             border-color: rgba(244, 70, 17, 0.4);
         }
 
-        #italic-indicator.on span {
+        #italic-indicator.on span:last-child {
             color: var(--accent);
         }
 
-        /* ── DISCONNECT BANNER ───────────────────────── */
-        #dc-banner {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            z-index: 300;
-            background: #1a0000;
-            border-top: 1px solid #ff4444;
-            padding: 0.9rem 1.2rem;
+        /* Speech */
+        .speech-row {
+            margin: 0.5rem 1rem 0;
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .speech-btn {
+            flex: 1;
+            padding: 0.9rem 1rem;
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            color: #666;
+            font-family: 'Fraunces', serif;
+            font-size: 0.72rem;
+            letter-spacing: 0.06em;
+            cursor: pointer;
             display: flex;
             align-items: center;
-            gap: 0.8rem;
-            transform: translateY(100%);
-            transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+            justify-content: center;
+            gap: 0.5rem;
+            transition: border-color 0.2s, color 0.2s, background 0.2s;
         }
 
-        #dc-banner.visible {
-            transform: translateY(0);
+        .speech-btn.listening {
+            border-color: var(--accent);
+            color: var(--accent);
+            background: rgba(244, 70, 17, 0.06);
+            animation: speech-pulse 1s ease-in-out infinite;
         }
 
-        .dc-banner-dot {
-            width: 7px;
-            height: 7px;
-            border-radius: 50%;
-            background: #ff4444;
-            flex-shrink: 0;
-            animation: dc-blink 1.2s ease-in-out infinite;
-        }
-
-        .dc-banner-dot.reconnecting {
-            background: #ff9900;
-        }
-
-        @keyframes dc-blink {
+        @keyframes speech-pulse {
 
             0%,
             100% {
-                opacity: 1;
+                box-shadow: 0 0 0 0 rgba(244, 70, 17, 0.3);
             }
 
             50% {
-                opacity: 0.25;
+                box-shadow: 0 0 0 8px rgba(244, 70, 17, 0);
             }
         }
 
-        .dc-banner-text {
-            flex: 1;
-            font-size: 0.7rem;
-            letter-spacing: 0.06em;
-            color: #ff7777;
-            line-height: 1.4;
+        .lang-btn {
+            padding: 0 0.9rem;
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            color: #555;
+            font-family: 'Fraunces', serif;
+            font-size: 0.65rem;
+            letter-spacing: 0.1em;
+            cursor: pointer;
+            transition: border-color 0.2s, color 0.2s;
         }
 
-        .dc-banner-text strong {
-            display: block;
-            color: #ffaaaa;
-            font-variation-settings: 'wght' 700, 'opsz' 12;
+        .lang-btn:active {
+            border-color: var(--accent);
+            color: var(--accent);
         }
 
-        /* ── FORCE DISCONNECT SCHERM ─────────────────── */
+        #speech-result {
+            margin: 0.3rem 1rem 0;
+            font-size: 0.68rem;
+            font-family: monospace;
+            color: #555;
+            min-height: 1.3rem;
+        }
+
+        /* ══════════════════════════════════════════════
+       OVERLAYS
+    ══════════════════════════════════════════════ */
         #force-dc {
             position: fixed;
             inset: 0;
@@ -655,62 +876,116 @@
             text-align: center;
             line-height: 1.7;
         }
+
+        #dc-banner {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            z-index: 300;
+            background: #1a0000;
+            border-top: 1px solid #ff4444;
+            padding: 0.9rem 1.2rem;
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            transform: translateY(100%);
+            transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        #dc-banner.visible {
+            transform: translateY(0);
+        }
+
+        .dc-banner-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: #ff4444;
+            animation: dc-blink 1.2s ease-in-out infinite;
+            flex-shrink: 0;
+        }
+
+        .dc-banner-dot.reconnecting {
+            background: #ff9900;
+        }
+
+        @keyframes dc-blink {
+
+            0%,
+            100% {
+                opacity: 1
+            }
+
+            50% {
+                opacity: 0.25
+            }
+        }
+
+        .dc-banner-text {
+            flex: 1;
+            font-size: 0.7rem;
+            letter-spacing: 0.06em;
+            color: #ff7777;
+            line-height: 1.4;
+        }
+
+        .dc-banner-text strong {
+            display: block;
+            color: #ffaaaa;
+            font-variation-settings: 'wght' 700, 'opsz' 12;
+        }
     </style>
 </head>
 
 <body>
 
-    <!-- ── ONBOARDING ── -->
+    <!-- ══ ONBOARDING ══ -->
     <div id="onboarding">
-
-        <!-- Stap 1: Verbinden -->
         <div class="step active" id="step-1">
             <div class="step-number">Stap 1 van 3</div>
-            <div class="step-icon">📡</div>
+            <div class="step-icon"><span class="material-icons">wifi</span></div>
             <div class="step-title">Verbinden<br>met <span>Desktop</span></div>
-            <div class="step-body">Wacht terwijl de WebRTC verbinding wordt opgezet met de desktop.</div>
+            <div class="step-body">Wacht terwijl de WebRTC verbinding wordt opgezet.</div>
             <div class="step-connecting">
                 <div class="conn-dot" id="conn-dot-1"></div>
                 <span id="conn-text-1">Socket verbinden…</span>
             </div>
         </div>
 
-        <!-- Stap 2: Gyro activeren -->
         <div class="step" id="step-2">
             <div class="step-number">Stap 2 van 3</div>
-            <div class="step-icon">🌀</div>
+            <div class="step-icon"><span class="material-icons">screen_rotation</span></div>
             <div class="step-title">Activeer<br><span>Gyroscoop</span></div>
             <div class="step-body">
-                Kantel je gsm om het lettertype te besturen.<br>
-                <strong style="color:#666;">Voor/achter</strong> = gewicht &nbsp;·&nbsp;
-                <strong style="color:#666;">Links/rechts</strong> = breedte
+                Kantel voor/achter = gewicht &nbsp;·&nbsp; Links/rechts = breedte<br>
+                Schud = italic aan/uit
             </div>
             <button class="step-btn" id="gyro-onboard-btn">Gyroscoop inschakelen</button>
             <button class="step-btn secondary" id="gyro-skip-btn">Overslaan</button>
         </div>
 
-        <!-- Stap 3: Klaar -->
         <div class="step" id="step-3">
             <div class="step-number">Stap 3 van 3</div>
-            <div class="step-icon">✦</div>
+            <div class="step-icon"><span class="material-icons">check_circle</span></div>
             <div class="step-title">Alles<br><span>Klaar</span></div>
             <div class="step-body">
-                Gebruik het touchpad en sliders om het font te besturen.<br>
-                <strong style="color:#666;">Schud</strong> je gsm om italic te togglen.
+                3 tabs onderaan:<br>
+                <strong style="color:#666;">Touch</strong> — touchpad voor weight + slant<br>
+                <strong style="color:#666;">Gyro</strong> — kantel je gsm<br>
+                <strong style="color:#666;">Instellingen</strong> — kleur, spraak &amp; meer
             </div>
             <button class="step-btn" id="start-btn">Start →</button>
         </div>
 
-        <!-- Progress dots -->
         <div class="step-dots">
             <div class="sdot active" id="sdot-1"></div>
             <div class="sdot" id="sdot-2"></div>
             <div class="sdot" id="sdot-3"></div>
         </div>
-
     </div>
 
-    <!-- ── MAIN APP ── -->
+    <!-- ══ APP ══ -->
     <div id="app">
 
         <header>
@@ -725,77 +1000,130 @@
             </div>
         </header>
 
-        <div id="touchpad">
-            <div class="tp-label tl">Touch Pad</div>
-            <div class="tp-label bl">← weight →</div>
-            <div class="tp-label tr" style="writing-mode:vertical-lr;right:0.5rem;top:50%;transform:translateY(-50%)">
-                slant</div>
-            <div id="touch-cursor"></div>
+        <!-- Tab content -->
+        <div id="tab-content">
+
+            <!-- Tab 1: Touch -->
+            <div class="tab-panel active" id="panel-touch">
+                <div id="touchpad">
+                    <div class="tp-label tl">Touch Pad</div>
+                    <div class="tp-label bl">← weight →</div>
+                    <div class="tp-label tr">slant</div>
+                    <div id="touchpad-blocked">
+                        <span class="material-icons tp-blocked-icon" style="font-size:2rem;">screen_rotation</span>
+                        <div class="tp-blocked-text">Gyroscoop is actief.<br>Zet gyro uit om touchpad te gebruiken.
+                        </div>
+                        <button class="tp-blocked-link" id="tp-disable-gyro-btn">Gyro uitschakelen</button>
+                    </div>
+                    <div id="touch-cursor"></div>
+                </div>
+            </div>
+
+            <!-- Tab 2: Gyro -->
+            <div class="tab-panel" id="panel-gyro">
+                <div class="gyro-ball-container" id="gyro-viz-big">
+                    <div id="gyro-ball-big"></div>
+                </div>
+                <div class="gyro-axis-labels">
+                    <span>← wdth →</span>
+                    <span>↕ wght</span>
+                </div>
+                <div class="gyro-readings">
+                    <div class="gyro-reading">
+                        <div class="gyro-reading-label">Weight</div>
+                        <div class="gyro-reading-val" id="gr-wght">400</div>
+                    </div>
+                    <div class="gyro-reading">
+                        <div class="gyro-reading-label">Width</div>
+                        <div class="gyro-reading-val" id="gr-wdth">100</div>
+                    </div>
+                </div>
+                <button class="gyro-toggle" id="gyro-toggle-big">Gyro inschakelen</button>
+                <div class="shake-indicator" id="shake-indicator">
+                    <div class="shake-dot"></div>
+                    <span>Schud voor italic</span>
+                </div>
+                <div class="gyro-hint">Kantel je gsm om het font te besturen.<br>Voor/achter = weight &nbsp;·&nbsp;
+                    Links/rechts = width</div>
+            </div>
+
+            <!-- Tab 3: Instellingen -->
+            <div class="tab-panel" id="panel-settings">
+
+                <div class="settings-section">Axes</div>
+                <div class="ctrl-row">
+                    <div class="ctrl-header">
+                        <span class="ctrl-name">Optical Size</span>
+                        <span class="ctrl-val" id="label-opsz">36</span>
+                    </div>
+                    <input type="range" id="slider-opsz" min="9" max="144" step="1" value="36">
+                </div>
+                <div class="ctrl-row">
+                    <div class="ctrl-header">
+                        <span class="ctrl-name">Wonky</span>
+                        <span class="ctrl-val" id="label-wonk">0</span>
+                    </div>
+                    <input type="range" id="slider-wonk" min="0" max="1" step="0.01" value="0">
+                </div>
+
+                <div class="settings-section" style="margin-top:0.5rem;">Italic</div>
+                <div id="italic-indicator">
+                    <span>Italic (schud om te togglen)</span>
+                    <span id="italic-val">uit</span>
+                </div>
+
+                <div class="settings-section" style="margin-top:0.5rem;">Kleur</div>
+                <div class="color-strip">
+                    <div class="color-btn active" data-mode="default"></div>
+                    <div class="color-btn" data-mode="inverted"></div>
+                    <div class="color-btn" data-mode="accent"></div>
+                    <div class="color-btn" data-mode="hot"></div>
+                    <div class="color-btn" data-mode="cold"></div>
+                </div>
+
+                <div class="settings-section" style="margin-top:0.5rem;">Spraak → woord op scherm</div>
+                <div class="speech-row">
+                    <button class="speech-btn" id="speech-btn">
+                        <span class="material-icons">mic</span>
+                        <span id="speech-label">Spreek een woord</span>
+                    </button>
+                    <button class="lang-btn" id="speech-lang-btn">NL</button>
+                </div>
+                <div id="speech-result"></div>
+
+            </div>
         </div>
 
-        <div id="controls">
-
-            <div class="section-label">Axes</div>
-
-            <div class="ctrl-row">
-                <div class="ctrl-header">
-                    <span class="ctrl-name">Optical Size</span>
-                    <span class="ctrl-val" id="label-opsz">36</span>
-                </div>
-                <input type="range" id="slider-opsz" min="9" max="144" step="1" value="36">
-            </div>
-
-            <div class="ctrl-row">
-                <div class="ctrl-header">
-                    <span class="ctrl-name">Wonky</span>
-                    <span class="ctrl-val" id="label-wonk">0</span>
-                </div>
-                <input type="range" id="slider-wonk" min="0" max="1" step="0.01" value="0">
-            </div>
-
-            <div class="section-label">Gyroscoop</div>
-
-            <div class="gyro-viz">
-                <div class="gyro-viz-label">kantel om weight + width te sturen</div>
-                <div id="gyro-ball"></div>
-            </div>
-
-            <div class="gyro-row">
-                <button class="gyro-toggle" id="gyro-btn">Enable Gyro</button>
-            </div>
-            <div id="gyro-debug"></div>
-
-            <div class="section-label">Kleur</div>
-
-            <div class="color-strip">
-                <div class="color-btn active" data-mode="default"></div>
-                <div class="color-btn" data-mode="inverted"></div>
-                <div class="color-btn" data-mode="accent"></div>
-                <div class="color-btn" data-mode="hot"></div>
-                <div class="color-btn" data-mode="cold"></div>
-            </div>
-
-            <div id="italic-indicator">
-                <span>Italic</span>
-                <span id="italic-val">uit</span>
-            </div>
-
+        <!-- Tab bar -->
+        <div id="tab-bar">
+            <button class="tab-btn active" data-tab="touch">
+                <span class="material-icons tab-icon">touch_app</span>
+                <span>Touch</span>
+            </button>
+            <button class="tab-btn" data-tab="gyro">
+                <span class="material-icons tab-icon">screen_rotation</span>
+                <span>Gyro</span>
+            </button>
+            <button class="tab-btn" data-tab="settings">
+                <span class="material-icons tab-icon">tune</span>
+                <span>Instellingen</span>
+            </button>
         </div>
+
     </div>
 
-    <!-- ── FORCE DISCONNECT ── -->
+    <!-- ══ OVERLAYS ══ -->
     <div id="force-dc">
-        <div class="fdc-icon">Disconnect ⏏</div>
+        <div class="fdc-icon"><span class="material-icons">link_off</span></div>
         <div class="fdc-title">Sessie<br>beëindigd</div>
-        <div class="fdc-body">De desktop heeft de verbinding verbroken.<br>Scan de QR-code opnieuw om te starten.</div>
+        <div class="fdc-body">De desktop heeft de verbinding verbroken.<br>Scan de QR-code opnieuw.</div>
     </div>
 
-    <!-- ── DISCONNECT BANNER ── -->
     <div id="dc-banner">
         <div class="dc-banner-dot" id="dc-banner-dot"></div>
         <div class="dc-banner-text">
             <strong id="dc-banner-title">Verbinding verbroken</strong>
-            <span id="dc-banner-body">Herverbinden met desktop…</span>
+            <span id="dc-banner-body">Herverbinden…</span>
         </div>
     </div>
 
@@ -807,21 +1135,27 @@
             const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
             const lerp = (a, b, t) => a + (b - a) * t;
 
-            // ── Onboarding flow ───────────────────────────────────────────
+            // ── Tabs ──────────────────────────────────────────────────────
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+                    btn.classList.add('active');
+                    document.getElementById(`panel-${btn.dataset.tab}`).classList.add('active');
+                });
+            });
+
+            // ── Onboarding ────────────────────────────────────────────────
             let currentStep = 1;
 
             function goToStep(n) {
                 const prev = $(`step-${currentStep}`);
                 prev.classList.remove('active');
                 prev.classList.add('exit');
-                setTimeout(() => prev.classList.remove('exit'), 500);
-
+                setTimeout(() => prev.classList.remove('exit'), 450);
                 currentStep = n;
                 $(`step-${n}`).classList.add('active');
-
-                document.querySelectorAll('.sdot').forEach((d, i) => {
-                    d.classList.toggle('active', i + 1 === n);
-                });
+                document.querySelectorAll('.sdot').forEach((d, i) => d.classList.toggle('active', i + 1 === n));
             }
 
             function finishOnboarding() {
@@ -831,22 +1165,16 @@
                 $('app').classList.add('visible');
             }
 
-            // WebRTC connected → go to step 2
             function onWebRTCConnected() {
                 $('conn-dot-1').classList.add('on');
                 $('conn-text-1').textContent = 'Verbonden!';
                 setTimeout(() => goToStep(2), 800);
             }
 
-            $('gyro-onboard-btn').addEventListener('click', async () => {
-                await enableGyro();
-                goToStep(3);
-            });
-
+            $('gyro-onboard-btn').addEventListener('click', async () => { await enableGyro(); goToStep(3); });
             $('gyro-skip-btn').addEventListener('click', () => goToStep(3));
             $('start-btn').addEventListener('click', finishOnboarding);
 
-            // Socket connected → update step 1 dot
             function onSocketConnected() {
                 $('conn-dot-1').style.background = '#F44611';
                 $('conn-dot-1').style.boxShadow = '0 0 8px #F44611';
@@ -866,29 +1194,27 @@
                 if (!gyroEnabled) return;
                 const acc = e.accelerationIncludingGravity;
                 if (!acc) return;
-                const dx = Math.abs(acc.x - lastAcc.x);
-                const dy = Math.abs(acc.y - lastAcc.y);
-                const dz = Math.abs(acc.z - lastAcc.z);
+                const shake = Math.abs(acc.x - lastAcc.x) + Math.abs(acc.y - lastAcc.y) + Math.abs(acc.z - lastAcc.z);
                 lastAcc = { x: acc.x, y: acc.y, z: acc.z };
-                if (dx + dy + dz > 30 && !italicLocked) {
+                if (shake > 30 && !italicLocked) {
                     axes.italic = !axes.italic;
                     italicLocked = true;
                     updateItalicIndicator();
+                    // Flash shake indicator
+                    const si = $('shake-indicator');
+                    si.classList.add('shook');
+                    setTimeout(() => si.classList.remove('shook'), 600);
                     setTimeout(() => { italicLocked = false; }, 800);
-                    const msg = JSON.stringify({ type: 'italic', value: axes.italic });
-                    if (simplePeer && simplePeer.connected) {
-                        try { simplePeer.send(msg); } catch (e) { }
-                    }
+                    send({ type: 'italic', value: axes.italic });
                 }
             });
 
             function updateItalicIndicator() {
-                const el = $('italic-indicator');
                 $('italic-val').textContent = axes.italic ? 'aan' : 'uit';
-                el.classList.toggle('on', axes.italic);
+                $('italic-indicator').classList.toggle('on', axes.italic);
             }
 
-            // ── RAF loop ─────────────────────────────────────────────────
+            // ── RAF loop ──────────────────────────────────────────────────
             let rafRunning = false;
             function startRAF() {
                 if (rafRunning) return;
@@ -904,33 +1230,42 @@
                     axes.wght = clamp(100 + ((gyroSmooth.beta + 90) / 180) * 800, 100, 900);
                     axes.wdth = clamp(75 + ((gyroSmooth.gamma + 90) / 180) * 50, 75, 125);
 
-                    const ball = $('gyro-ball');
-                    const viz = document.querySelector('.gyro-viz');
-                    ball.style.left = clamp((gyroSmooth.gamma + 90) / 180, 0, 1) * viz.clientWidth + 'px';
-                    ball.style.top = clamp((gyroSmooth.beta + 90) / 180, 0, 1) * viz.clientHeight + 'px';
+                    // Update grote gyro viz
+                    const viz = $('gyro-viz-big');
+                    const ball = $('gyro-ball-big');
+                    const bx = clamp((gyroSmooth.gamma + 90) / 180, 0, 1) * viz.clientWidth;
+                    const by = clamp((gyroSmooth.beta + 90) / 180, 0, 1) * viz.clientHeight;
+                    ball.style.left = bx + 'px';
+                    ball.style.top = by + 'px';
+
+                    // Update readings
+                    $('gr-wght').textContent = Math.round(axes.wght);
+                    $('gr-wdth').textContent = Math.round(axes.wdth);
                 }
 
                 sendFontMessage();
                 requestAnimationFrame(loop);
             }
 
-            // ── Send ──────────────────────────────────────────────────────
+            // ── Send helpers ──────────────────────────────────────────────
             const SEND_INTERVAL = 16;
             let lastSent = 0;
+
+            function send(obj) {
+                const msg = JSON.stringify(obj);
+                if (simplePeer && simplePeer.connected) {
+                    try { simplePeer.send(msg); } catch (e) { }
+                }
+            }
 
             function sendFontMessage() {
                 const now = performance.now();
                 if (now - lastSent < SEND_INTERVAL) return;
                 lastSent = now;
-                const msg = JSON.stringify({ type: 'font', axes: { ...axes } });
-                if (simplePeer && simplePeer.connected) {
-                    try { simplePeer.send(msg); } catch (e) { }
-                } else if (socket && socket.connected && targetSocketId) {
-                    socket.emit('update', targetSocketId, { x: axes.x, y: axes.y });
-                }
+                send({ type: 'font', axes: { ...axes } });
             }
 
-            // ── Touchpad ─────────────────────────────────────────────────
+            // ── Touchpad ──────────────────────────────────────────────────
             const touchpad = $('touchpad');
             const cursor = $('touch-cursor');
 
@@ -938,12 +1273,12 @@
                 const rect = touchpad.getBoundingClientRect();
                 const nx = clamp((cx - rect.left) / rect.width, 0, 1);
                 const ny = clamp((cy - rect.top) / rect.height, 0, 1);
-                axes.x = nx;
-                axes.y = ny;
+                axes.x = nx; axes.y = ny;
                 axes.wght = clamp(100 + nx * 800, 100, 900);
                 axes.slnt = clamp((ny - 0.5) * -24, -12, 12);
                 cursor.style.left = (nx * 100) + '%';
                 cursor.style.top = (ny * 100) + '%';
+                $('touch-cursor').querySelector('.tp-hint') && ($('touch-cursor').querySelector('.tp-hint').style.display = 'none');
             }
 
             touchpad.addEventListener('touchstart', e => { e.preventDefault(); updateFromTouch(e.touches[0].clientX, e.touches[0].clientY); }, { passive: false });
@@ -959,7 +1294,6 @@
                     lb.textContent = Math.round(parseFloat(el.value) * 100) / 100;
                 });
             }
-
             setupSlider('slider-opsz', 'opsz', 'label-opsz');
             setupSlider('slider-wonk', 'wonk', 'label-wonk');
 
@@ -967,36 +1301,46 @@
             const isSecure = location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1';
 
             async function enableGyro() {
-                if (!isSecure) { $('gyro-debug').textContent = '⚠ HTTPS vereist'; return; }
+                if (!isSecure) return;
                 if (typeof DeviceOrientationEvent !== 'undefined' &&
                     typeof DeviceOrientationEvent.requestPermission === 'function') {
                     try {
                         const perm = await DeviceOrientationEvent.requestPermission();
-                        if (perm !== 'granted') { $('gyro-debug').textContent = '⚠ Geen toegang'; return; }
-                    } catch (e) { $('gyro-debug').textContent = '⚠ ' + e.message; return; }
+                        if (perm !== 'granted') return;
+                    } catch (e) { return; }
                 }
                 window.addEventListener('deviceorientation', onOrientation);
                 gyroEnabled = true;
-                $('gyro-btn').textContent = 'Disable Gyro';
-                $('gyro-btn').classList.add('active');
+                $('gyro-toggle-big').textContent = 'Gyro uitschakelen';
+                $('gyro-toggle-big').classList.add('active');
+                $('touchpad-blocked').classList.add('visible');
             }
 
-            $('gyro-btn').addEventListener('click', async () => {
-                if (!gyroEnabled) {
-                    await enableGyro();
-                } else {
-                    window.removeEventListener('deviceorientation', onOrientation);
-                    gyroEnabled = false;
-                    $('gyro-btn').textContent = 'Enable Gyro';
-                    $('gyro-btn').classList.remove('active');
-                    $('gyro-debug').textContent = '';
-                }
+            async function disableGyro() {
+                window.removeEventListener('deviceorientation', onOrientation);
+                gyroEnabled = false;
+                $('gyro-toggle-big').textContent = 'Gyro inschakelen';
+                $('gyro-toggle-big').classList.remove('active');
+                $('touchpad-blocked').classList.remove('visible');
+            }
+
+            $('gyro-toggle-big').addEventListener('click', async () => {
+                if (gyroEnabled) disableGyro(); else await enableGyro();
+            });
+
+            // "Gyro uitschakelen" knop op touchpad overlay
+            $('tp-disable-gyro-btn').addEventListener('click', () => {
+                disableGyro();
+                // Spring naar touch tab
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+                document.querySelector('[data-tab="touch"]').classList.add('active');
+                $('panel-touch').classList.add('active');
             });
 
             function onOrientation(e) {
                 axes.beta = e.beta != null ? e.beta : 0;
                 axes.gamma = e.gamma != null ? e.gamma : 0;
-                $('gyro-debug').textContent = `β ${Math.round(axes.beta)}° → wght   γ ${Math.round(axes.gamma)}° → wdth`;
             }
 
             // ── Color buttons ─────────────────────────────────────────────
@@ -1004,14 +1348,81 @@
                 btn.addEventListener('click', () => {
                     document.querySelectorAll('.color-btn').forEach(b => b.classList.remove('active'));
                     btn.classList.add('active');
-                    const msg = JSON.stringify({ type: 'color', mode: btn.dataset.mode });
-                    if (simplePeer && simplePeer.connected) {
-                        try { simplePeer.send(msg); } catch (e) { }
-                    }
+                    send({ type: 'color', mode: btn.dataset.mode });
                 });
             });
 
-            // ── Feedback: trilling + geluid ───────────────────────────────
+            // ── Speech ────────────────────────────────────────────────────
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            let recognition = null;
+            let speechListening = false;
+            let speechLang = 'nl-NL';
+
+            function buildRecognition() {
+                if (!SpeechRecognition) return null;
+                const r = new SpeechRecognition();
+                r.lang = speechLang;
+                r.interimResults = true;
+                r.continuous = false;
+                r.maxAlternatives = 1;
+
+                r.onstart = () => {
+                    speechListening = true;
+                    $('speech-btn').classList.add('listening');
+                    $('speech-label').textContent = 'Luisteren…';
+                    $('speech-result').textContent = '…';
+                };
+
+                r.onresult = (e) => {
+                    let transcript = '';
+                    for (let i = e.resultIndex; i < e.results.length; i++) {
+                        transcript = e.results[i][0].transcript.trim();
+                        if (e.results[i].isFinal) {
+                            const word = transcript.split(' ')[0];
+                            $('speech-result').textContent = `✓ "${word}"`;
+                            send({ type: 'word', word });
+                            return;
+                        }
+                    }
+                    $('speech-result').textContent = `"${transcript}"`;
+                };
+
+                r.onerror = (e) => {
+                    const msgs = { 'not-allowed': '⚠ Geen microfoon toegang', 'no-speech': '⚠ Geen spraak', 'network': '⚠ Netwerk fout' };
+                    $('speech-result').textContent = msgs[e.error] || `⚠ ${e.error}`;
+                    resetSpeechBtn();
+                };
+
+                r.onend = () => resetSpeechBtn();
+                return r;
+            }
+
+            if (!SpeechRecognition) {
+                $('speech-btn').disabled = true;
+                $('speech-btn').style.opacity = '0.35';
+                $('speech-label').textContent = 'Gebruik Chrome of Safari';
+            }
+
+            function resetSpeechBtn() {
+                speechListening = false; recognition = null;
+                $('speech-btn').classList.remove('listening');
+                $('speech-label').textContent = 'Spreek een woord';
+            }
+
+            $('speech-btn').addEventListener('click', () => {
+                if (!SpeechRecognition) return;
+                if (speechListening && recognition) { recognition.stop(); return; }
+                if (audioCtx && audioCtx.state === 'running') audioCtx.suspend().catch(() => { });
+                recognition = buildRecognition();
+                try { recognition.start(); } catch (e) { $('speech-result').textContent = '⚠ ' + e.message; resetSpeechBtn(); }
+            });
+
+            $('speech-lang-btn').addEventListener('click', () => {
+                speechLang = speechLang === 'nl-NL' ? 'en-US' : 'nl-NL';
+                $('speech-lang-btn').textContent = speechLang === 'nl-NL' ? 'NL' : 'EN';
+            });
+
+            // ── Feedback ──────────────────────────────────────────────────
             let audioCtx = null;
 
             document.addEventListener('touchstart', () => {
@@ -1024,8 +1435,7 @@
                     if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
                     const osc = audioCtx.createOscillator();
                     const gain = audioCtx.createGain();
-                    osc.connect(gain);
-                    gain.connect(audioCtx.destination);
+                    osc.connect(gain); gain.connect(audioCtx.destination);
                     osc.frequency.value = italic ? 880 : 440;
                     osc.type = 'sine';
                     gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
@@ -1035,29 +1445,24 @@
                 } catch (e) { }
             }
 
-            // ── Socket + SimplePeer ───────────────────────────────────────
-            let socket, simplePeer, targetSocketId;
-
-            function setPill(id, on) {
-                $(id).classList.toggle('connected', on);
-            }
-
-            // ── Disconnect banner ─────────────────────────────────────────
-            function showDCBanner(title, body, blinking) {
+            // ── Disconnect ────────────────────────────────────────────────
+            function showDCBanner(title, body, type) {
                 $('dc-banner-title').textContent = title;
                 $('dc-banner-body').textContent = body;
-                $('dc-banner-dot').className = 'dc-banner-dot' + (blinking === 'reconnecting' ? ' reconnecting' : '');
+                $('dc-banner-dot').className = 'dc-banner-dot' + (type === 'reconnecting' ? ' reconnecting' : '');
                 $('dc-banner').classList.add('visible');
             }
 
-            function hideDCBanner() {
-                $('dc-banner').classList.remove('visible');
-            }
+            function hideDCBanner() { $('dc-banner').classList.remove('visible'); }
+
+            // ── Socket + SimplePeer ───────────────────────────────────────
+            let socket, simplePeer, targetSocketId;
+
+            function setPill(id, on) { $(id).classList.toggle('connected', on); }
 
             function setupSimplePeer() {
                 simplePeer = new SimplePeer({
-                    initiator: true,
-                    trickle: true,
+                    initiator: true, trickle: true,
                     config: {
                         iceServers: [
                             { urls: ['stun:stun.l.google.com:19302'] },
@@ -1099,7 +1504,7 @@
 
             targetSocketId = getParam('id');
             if (!targetSocketId) {
-                document.body.innerHTML = '<div style="padding:2rem;color:#ff4444;font-family:monospace;font-size:0.9rem;">Missing ?id= parameter</div>';
+                document.body.innerHTML = '<div style="padding:2rem;color:#ff4444;font-family:monospace;">Missing ?id= parameter</div>';
             } else {
                 socket = io.connect('/');
 
@@ -1115,13 +1520,11 @@
                 });
 
                 socket.on('force-disconnect', () => {
-                    // Desktop heeft sessie beëindigd — toon eindscherm
                     if (simplePeer) { simplePeer.destroy(); simplePeer = null; }
                     setPill('pill-webrtc', false);
                     hideDCBanner();
-                    document.getElementById('force-dc').classList.add('visible');
-                    // Verberg app
-                    document.getElementById('app').classList.remove('visible');
+                    $('app').classList.remove('visible');
+                    $('force-dc').classList.add('visible');
                 });
 
                 socket.on('disconnect', () => {
